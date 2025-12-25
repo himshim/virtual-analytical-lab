@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="../../css/global.css">
-
-  <!-- Chart.js global -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -15,6 +13,12 @@
 
 <h1>HPLC Simulator</h1>
 <p id="status">Status: IDLE</p>
+
+<!-- ===== DIAGRAM ===== -->
+<div class="instrument-card">
+  <h3>HPLC Flow Diagram</h3>
+  <div id="diagramContainer">Loading diagram…</div>
+</div>
 
 <!-- ===== METHOD CONTROLS ===== -->
 <div class="instrument-card">
@@ -30,13 +34,13 @@
 
   <label>Compound</label><br>
   <select id="compoundSelect">
-    <option value="0.35">Paracetamol (low hydrophobic)</option>
-    <option value="0.55" selected>Caffeine (medium)</option>
-    <option value="0.85">Ibuprofen (high hydrophobic)</option>
+    <option value="0.35">Paracetamol</option>
+    <option value="0.55" selected>Caffeine</option>
+    <option value="0.85">Ibuprofen</option>
   </select>
 </div>
 
-<!-- ===== PUMP CONTROLS ===== -->
+<!-- ===== PUMP ===== -->
 <div class="instrument-card">
   <button id="pumpBtn">Pump START</button>
   <button id="injectBtn" disabled>Inject Sample</button>
@@ -44,10 +48,17 @@
 
 <p id="rtDisplay">Estimated RT: —</p>
 
-<!-- ===== GRAPH ===== -->
 <canvas id="graphCanvas" height="260"></canvas>
 
-<!-- ===== LOGIC ===== -->
+<!-- ===== LOAD SVG ===== -->
+<script>
+fetch("./hplc.diagram.svg")
+  .then(r => r.text())
+  .then(svg => {
+    document.getElementById("diagramContainer").innerHTML = svg;
+  });
+</script>
+
 <script src="./hplc.stable.js"></script>
 
 </body>

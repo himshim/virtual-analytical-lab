@@ -2,12 +2,12 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>HPLC Simulator (Stable)</title>
+  <title>HPLC Simulator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="../../css/global.css">
 
-  <!-- Chart.js MUST be global -->
+  <!-- Chart.js global -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -16,6 +16,27 @@
 <h1>HPLC Simulator</h1>
 <p id="status">Status: IDLE</p>
 
+<!-- ===== METHOD CONTROLS ===== -->
+<div class="instrument-card">
+  <h3>Method Parameters</h3>
+
+  <label>Flow Rate (mL/min)</label><br>
+  <input id="flowInput" type="range" min="0.5" max="2.5" step="0.1" value="1.0">
+  <span id="flowVal">1.0</span><br><br>
+
+  <label>Mobile Phase (%B)</label><br>
+  <input id="organicInput" type="range" min="10" max="90" step="5" value="40">
+  <span id="organicVal">40%</span><br><br>
+
+  <label>Compound</label><br>
+  <select id="compoundSelect">
+    <option value="0.35">Paracetamol (low hydrophobic)</option>
+    <option value="0.55" selected>Caffeine (medium)</option>
+    <option value="0.85">Ibuprofen (high hydrophobic)</option>
+  </select>
+</div>
+
+<!-- ===== PUMP CONTROLS ===== -->
 <div class="instrument-card">
   <button id="pumpBtn">Pump START</button>
   <button id="injectBtn" disabled>Inject Sample</button>
@@ -23,9 +44,10 @@
 
 <p id="rtDisplay">Estimated RT: —</p>
 
-<canvas id="graphCanvas" height="250"></canvas>
+<!-- ===== GRAPH ===== -->
+<canvas id="graphCanvas" height="260"></canvas>
 
-<!-- SINGLE SCRIPT, NO MODULES -->
+<!-- ===== LOGIC ===== -->
 <script src="./hplc.stable.js"></script>
 
 </body>

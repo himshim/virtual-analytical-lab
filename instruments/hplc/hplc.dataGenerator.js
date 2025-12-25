@@ -1,7 +1,12 @@
 export function generateHPLCFrame(state) {
   const t = state.runtime.time;
 
-  let signal = Math.random() * 0.02; // baseline noise
+  const noise =
+    (Math.random() - 0.5) *
+    0.02 *
+    state.detector.sensitivity;
+
+  let signal = noise;
 
   const baseRT = 2.0;
   const flow = state.flow;
@@ -17,8 +22,20 @@ export function generateHPLCFrame(state) {
 
     const width = 0.15 / eff;
 
-    signal +=
+    const uvResponse = Math.exp(
+      -Math.pow(
+        state.detector.wavelength - comp.uvMax,
+        2
+      ) / 800
+    );
+
+    const height =
       comp.response *
+      uvResponse *
+      state.detector.sensitivity;
+
+    signal +=
+      height *
       Math.exp(-Math.pow(t - rt, 2) / width);
   });
 

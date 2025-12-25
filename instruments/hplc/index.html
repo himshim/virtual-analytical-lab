@@ -12,16 +12,10 @@
 <body>
 
 <h1>HPLC Simulator</h1>
-
-<div class="instrument-card">
-  <h3>HPLC Flow Diagram</h3>
-  <div id="diagramContainer"></div>
-</div>
+<p id="status">Status: IDLE</p>
 
 <div class="instrument-card">
   <h3>Sample</h3>
-
-  <label>Select Sample</label><br>
   <select id="sampleSelect">
     <option value="mixture_pc">Paracetamol + Caffeine</option>
     <option value="caffeine">Caffeine</option>
@@ -32,49 +26,29 @@
 
 <div class="instrument-card">
   <h3>Column</h3>
-
-  <label>Column Type</label><br>
   <select id="columnType">
     <option value="C18">C18</option>
     <option value="C8">C8</option>
     <option value="Silica">Silica</option>
-  </select><br><br>
-
-  <label>Column Length</label><br>
-  <input id="columnLength" type="range" min="50" max="250" step="10" value="150">
-  <span id="columnLengthVal">150 mm</span>
+  </select>
 </div>
 
 <div class="instrument-card">
   <h3>Mobile Phase</h3>
-
-  <label>Organic Solvent (ACN %)</label><br>
   <input id="solventB" type="range" min="10" max="90" step="5" value="40">
-  <span id="solventBVal">40% ACN</span>
 </div>
 
 <div class="instrument-card">
   <h3>Pump</h3>
-
-  <label>Flow Rate (mL/min)</label><br>
   <input id="flow" type="range" min="0.5" max="2.5" step="0.1" value="1">
-  <span id="flowVal">1.0</span><br><br>
-
+  <br><br>
   <button id="pumpBtn">Pump OFF</button>
   <button id="injectBtn" disabled>Inject Sample</button>
-
   <p id="pressureDisplay">Pressure: 0 bar</p>
 </div>
 
 <canvas id="graphCanvas" height="220"></canvas>
 
-<script>
-fetch("./hplc.diagram.svg")
-  .then(r => r.text())
-  .then(svg => document.getElementById("diagramContainer").innerHTML = svg);
-</script>
-
 <script type="module" src="./hplc.ui.js"></script>
-
 </body>
 </html>

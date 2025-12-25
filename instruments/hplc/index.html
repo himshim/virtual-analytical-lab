@@ -1,228 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Virtual HPLC Simulator</title>
+  <meta charset="UTF-8">
+  <title>HPLC Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f8f8f8;
-      color: #222;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 15px;
-    }
-
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-    }
-
-    /* SVG Panel */
-    #hplc-viz {
-      border: 2px solid #ccc;
-      background: #fff;
-      width: 100%;
-      height: 450px;
-    }
-
-    /* Controls */
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      justify-content: center;
-      margin-top: 20px;
-    }
-
-    .control-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: #fff;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      width: 200px;
-    }
-
-    .control-group input[type="range"] {
-      width: 100%;
-    }
-
-    .btn {
-      margin-top: 8px;
-      padding: 8px 12px;
-      border: none;
-      background: #0078ff;
-      color: white;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .btn:hover {
-      background: #005fcc;
-    }
-
-    /* Chromatogram area */
-    #chart-area {
-      margin-top: 30px;
-      height: 300px;
-      border: 2px solid #333;
-      background: #fff;
-      position: relative;
-    }
-
-    #chart-area svg {
-      width: 100%;
-      height: 100%;
-    }
-
-  </style>
+  <link rel="stylesheet" href="../../css/global.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>🚀 Virtual HPLC — Interactive Simulation</h1>
+<h1>HPLC Simulator</h1>
 
-  <!-- SVG Container -->
-  <div id="hplc-viz">
-    <!-- injected via JS -->
-  </div>
-
-  <!-- Control Panel -->
-  <div class="controls">
-    
-    <!-- Pump Rate -->
-    <div class="control-group">
-      <label>Flow Rate (mL/min)</label>
-      <input type="range" id="flowRate" min="0.2" max="3.0" step="0.1" value="1.0">
-      <span id="flowVal">1.0</span>
-    </div>
-
-    <!-- Pump ON/OFF -->
-    <div class="control-group">
-      <label>Pump</label>
-      <button class="btn" id="togglePump">START</button>
-    </div>
-
-    <!-- Inject Sample -->
-    <div class="control-group">
-      <label>Sample Injection</label>
-      <button class="btn" id="injectSample">INJECT</button>
-    </div>
-
-  </div>
-
-  <!-- Chromatogram Output -->
-  <div id="chart-area"></div>
+<div class="instrument-card">
+  <h3>HPLC Flow Diagram</h3>
+  <div id="diagramContainer"></div>
 </div>
 
+<div class="instrument-card">
+  <h3>Mobile Phase</h3>
+
+  <label>Organic Solvent (ACN %)</label><br>
+  <input id="solventB" type="range" min="10" max="90" step="5" value="40">
+  <span id="solventBVal">40% ACN</span>
+</div>
+
+<div class="instrument-card">
+  <h3>Pump</h3>
+
+  <label>Flow Rate (mL/min)</label><br>
+  <input id="flow" type="range" min="0.5" max="2.5" step="0.1" value="1">
+  <span id="flowVal">1.0</span><br><br>
+
+  <button id="pumpBtn">Pump OFF</button>
+  <button id="injectBtn" disabled>Inject Sample</button>
+
+  <p id="pressureDisplay">Pressure: 0 bar</p>
+</div>
+
+<canvas id="graphCanvas" height="220"></canvas>
+
 <script>
-/* -----------------------------------------------
-   Inline SVG — HPLC Diagram (simple example)
-   You can replace this with full SVG art later
-   You can animate parts using CSS or JS. 1
--------------------------------------------------- */
-const svgContent = `
-<svg id="hplcSvg" viewBox="0 0 900 350" xmlns="http://www.w3.org/2000/svg">
-  <!-- Pump -->
-  <rect id="pump-body" x="50" y="120" width="120" height="80" fill="#666"/>
-  <circle id="pump-wheel" cx="110" cy="160" r="20" fill="#222">
-    <animateTransform id="pumpAnim"
-      attributeName="transform"
-      type="rotate"
-      from="0 110 160"
-      to="360 110 160"
-      dur="2s"
-      repeatCount="indefinite"
-      begin="indefinite"/>
-  </circle>
-  <text x="60" y="130" fill="#fff" font-size="14">Pump</text>
-
-  <!-- Column -->
-  <rect x="200" y="100" width="50" height="150" fill="#8a8"/>
-  <text x="195" y="90" fill="#000">Column</text>
-
-  <!-- Detector -->
-  <rect x="300" y="130" width="100" height="80" fill="#88a"/>
-  <text x="305" y="120" fill="#000">Detector</text>
-
-  <!-- Flow line -->
-  <line x1="170" y1="160" x2="200" y2="160" stroke="#000" stroke-width="4"/>
-  <line x1="250" y1="160" x2="300" y2="160" stroke="#000" stroke-width="4"/>
-
-</svg>
-`;
-
-document.getElementById("hplc-viz").innerHTML = svgContent;
-
-// Control Bindings
-const flowRateInput = document.getElementById("flowRate");
-const flowValSpan = document.getElementById("flowVal");
-const pumpBtn = document.getElementById("togglePump");
-const injectBtn = document.getElementById("injectSample");
-
-let pumpRunning = false;
-
-flowRateInput.addEventListener("input", () => {
-  flowValSpan.textContent = flowRateInput.value;
-});
-
-pumpBtn.addEventListener("click", () => {
-  const pumpAnim = document.getElementById("pumpAnim");
-  pumpRunning = !pumpRunning;
-
-  if (pumpRunning) {
-    pumpAnim.beginElement(); 
-    pumpBtn.textContent = "STOP";
-  } else {
-    pumpBtn.textContent = "START";
-    // optional: stop animation later
-  }
-});
-
-injectBtn.addEventListener("click", () => {
-  simulateChromatogram();
-});
-
-/* -----------------------------------------------
-   Simple Chromatogram Plot Logic
-   Using inline SVG for graph
-   Can be replaced later with D3.js or Canvas. 2
--------------------------------------------------- */
-function simulateChromatogram() {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const chart = document.createElementNS(svgNS, "svg");
-  chart.setAttribute("viewBox", "0 0 500 300");
-
-  // Baseline
-  const line = document.createElementNS(svgNS, "polyline");
-  line.setAttribute("fill", "none");
-  line.setAttribute("stroke", "#222");
-  line.setAttribute("stroke-width", "2");
-  
-  let points = "";
-  for (let t = 0; t <= 500; t+=5) {
-    const y = 250 - (20 * Math.sin((t/500) * Math.PI * 2) * Math.random());
-    points += `${t},${y} `;
-  }
-  line.setAttribute("points", points);
-  chart.appendChild(line);
-
-  const area = document.getElementById("chart-area");
-  area.innerHTML = "";
-  area.appendChild(chart);
-}
-
+fetch("./hplc.diagram.svg")
+  .then(r => r.text())
+  .then(svg => document.getElementById("diagramContainer").innerHTML = svg);
 </script>
+
+<script type="module" src="./hplc.ui.js"></script>
 
 </body>
 </html>

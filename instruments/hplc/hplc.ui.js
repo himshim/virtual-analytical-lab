@@ -1,8 +1,7 @@
-import {
-  startFlowAnimation,
-  stopFlowAnimation,
-  injectSampleAnimation
-} from "./hplc.animation.js";
+/* ================================
+   HPLC UI CONTROLLER (STEP 4 FIXED)
+   ================================ */
+
 import { hplcState, HPLC_STATES } from "./hplc.state.js";
 import {
   updatePressure,
@@ -15,10 +14,15 @@ import {
 import {
   startFlowAnimation,
   stopFlowAnimation,
-  injectSampleAnimation
+  injectSampleAnimation,
+  initAnimation
 } from "./hplc.animation.js";
 
 import { samples } from "./samples.js";
+
+/* ================================
+   DOM ELEMENTS
+   ================================ */
 
 const statusEl = document.getElementById("status");
 const pumpBtn = document.getElementById("pumpBtn");
@@ -30,22 +34,34 @@ const solventB = document.getElementById("solventB");
 const columnType = document.getElementById("columnType");
 const sampleSelect = document.getElementById("sampleSelect");
 
-/* -------- Controls -------- */
+/* ================================
+   INITIALIZATION
+   ================================ */
+
+// Wait until SVG is injected before querying SVG elements
+setTimeout(() => {
+  initAnimation();
+}, 200);
+
+/* ================================
+   CONTROL HANDLERS
+   ================================ */
+
 flow.oninput = () => {
   hplcState.flow = Number(flow.value);
-  updateAll();
+  recalcSystem();
 };
 
 solventB.oninput = () => {
   const b = Number(solventB.value);
   hplcState.mobilePhase.solventB.percent = b;
   hplcState.mobilePhase.solventA.percent = 100 - b;
-  updateAll();
+  recalcSystem();
 };
 
 columnType.onchange = () => {
   hplcState.column.type = columnType.value;
-  updateAll();
+  recalcSystem();
 };
 
 sampleSelect.onchange = () => {
@@ -54,7 +70,10 @@ sampleSelect.onchange = () => {
 
 pumpBtn.onclick = () => {
   hplcState.pumpOn = !hplcState.pumpOn;
-  pumpBtn.textContent = hplcState.pumpOn ? "Pump ON" : "Pump OFF";
+
+  pumpBtn.textContent = hplcState.pumpOn
+    ? "Pump ON"
+    : "Pump OFF";
 
   if (hplcState.pumpOn) {
     startFlowAnimation();
@@ -68,22 +87,36 @@ pumpBtn.onclick = () => {
 
 injectBtn.onclick = () => {
   if (hplcState.systemState !== HPLC_STATES.READY) return;
+
   injectSampleAnimation();
   startRun(hplcState);
 };
 
-/* -------- State Loop -------- */
+/* ================================
+   SYSTEM UPDATE LOOP
+   ================================ */
+
 setInterval(() => {
   if (hplcState.systemState === HPLC_STATES.EQUILIBRATING) {
     tickEquilibration(hplcState);
   }
+
   updateUI();
 }, 1000);
 
-function updateAll() {
+/* ================================
+   HELPERS
+   ================================ */
+
+function recalcSystem() {
   updateMobilePhase(hplcState);
   updateColumn(hplcState);
   updatePressure(hplcState);
+
+  if (hplcState.warning) {
+    hplcState.systemState = HPLC_STATES.ERROR;
+    stopFlowAnimation();
+  }
 }
 
 function updateUI() {

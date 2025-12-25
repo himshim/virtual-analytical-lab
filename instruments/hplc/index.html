@@ -14,12 +14,6 @@
 <h1>HPLC Simulator</h1>
 <p id="status">Status: IDLE</p>
 
-<!-- ✅ DIAGRAM CONTAINER (MISSING BEFORE) -->
-<div class="instrument-card">
-  <h3>HPLC Flow Diagram</h3>
-  <div id="diagramContainer">Loading diagram…</div>
-</div>
-
 <div class="instrument-card">
   <h3>Sample</h3>
   <select id="sampleSelect">
@@ -45,6 +39,18 @@
 </div>
 
 <div class="instrument-card">
+  <h3>Detector (UV)</h3>
+
+  <label>Wavelength (nm)</label><br>
+  <input id="wavelength" type="range" min="200" max="300" value="254">
+  <span id="wavelengthVal">254 nm</span><br><br>
+
+  <label>Sensitivity (AUFS)</label><br>
+  <input id="sensitivity" type="range" min="0.5" max="5" step="0.5" value="1">
+  <span id="sensitivityVal">1.0</span>
+</div>
+
+<div class="instrument-card">
   <h3>Pump</h3>
   <input id="flow" type="range" min="0.5" max="2.5" step="0.1" value="1">
   <br><br>
@@ -53,23 +59,10 @@
   <p id="pressureDisplay">Pressure: 0 bar</p>
 </div>
 
+<p id="rtDisplay"></p>
+
 <canvas id="graphCanvas" height="220"></canvas>
 
-<!-- ✅ SVG LOAD (CRITICAL) -->
-<script>
-fetch("./hplc.diagram.svg")
-  .then(r => r.text())
-  .then(svg => {
-    document.getElementById("diagramContainer").innerHTML = svg;
-  })
-  .catch(err => {
-    document.getElementById("diagramContainer").innerHTML =
-      "<p style='color:red'>Failed to load diagram</p>";
-    console.error(err);
-  });
-</script>
-
-<!-- UI logic -->
 <script type="module" src="./hplc.ui.js"></script>
 
 </body>

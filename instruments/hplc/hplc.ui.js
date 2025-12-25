@@ -1,3 +1,8 @@
+import {
+  startFlowAnimation,
+  stopFlowAnimation,
+  injectSampleAnimation
+} from "./hplc.animation.js";
 import { hplcState, HPLC_STATES } from "./hplc.state.js";
 import {
   updatePressure,

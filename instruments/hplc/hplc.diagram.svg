@@ -1,31 +1,92 @@
-<svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 1000 260" xmlns="http://www.w3.org/2000/svg">
 
-  <!-- Solvent Reservoir -->
-  <rect x="20" y="70" width="80" height="80" fill="#cfe8fc" stroke="#333"/>
-  <text x="30" y="65" font-size="12">Reservoir</text>
+  <style>
+    .tube {
+      fill: none;
+      stroke: #444;
+      stroke-width: 4;
+    }
+
+    .flow {
+      stroke-dasharray: 10 8;
+      animation: flowAnim 1s linear infinite;
+      stroke: #1565c0;
+    }
+
+    @keyframes flowAnim {
+      to { stroke-dashoffset: -18; }
+    }
+
+    .inactive {
+      opacity: 0.2;
+    }
+
+    .active {
+      opacity: 1;
+    }
+
+    .pulse {
+      animation: pumpPulse 0.8s infinite alternate;
+    }
+
+    @keyframes pumpPulse {
+      from { fill: #e0e0e0; }
+      to { fill: #90caf9; }
+    }
+
+    .injectFlash {
+      animation: injectFlash 0.6s;
+    }
+
+    @keyframes injectFlash {
+      0% { fill: #ffccbc; }
+      100% { fill: #f5f5f5; }
+    }
+
+    .band {
+      fill: #42a5f5;
+      opacity: 0;
+    }
+
+    .bandActive {
+      animation: bandMove 4s linear forwards;
+    }
+
+    @keyframes bandMove {
+      0% { opacity: 0; transform: translateX(0); }
+      20% { opacity: 1; }
+      100% { transform: translateX(140px); opacity: 0; }
+    }
+  </style>
+
+  <!-- Reservoir -->
+  <rect x="30" y="90" width="80" height="80" fill="#cfe8fc" stroke="#333"/>
+  <text x="35" y="80" font-size="12">Reservoir</text>
 
   <!-- Pump -->
-  <rect id="pumpBox" x="140" y="70" width="90" height="80" fill="#e0e0e0" stroke="#333"/>
-  <text x="160" y="65" font-size="12">Pump</text>
+  <rect id="pumpBox" x="160" y="80" width="90" height="100" fill="#e0e0e0" stroke="#333"/>
+  <text x="185" y="70" font-size="12">Pump</text>
 
   <!-- Injector -->
-  <rect id="injectorBox" x="280" y="70" width="90" height="80" fill="#f5f5f5" stroke="#333"/>
-  <text x="295" y="65" font-size="12">Injector</text>
+  <rect id="injectorBox" x="300" y="90" width="80" height="80" fill="#f5f5f5" stroke="#333"/>
+  <text x="300" y="80" font-size="12">Injector</text>
 
   <!-- Column -->
-  <rect x="420" y="90" width="180" height="40" fill="#dcedc8" stroke="#333"/>
-  <text x="480" y="80" font-size="12">Column</text>
+  <rect x="430" y="110" width="200" height="40" fill="#dcedc8" stroke="#333"/>
+  <text x="495" y="100" font-size="12">Column</text>
+
+  <!-- Sample Band -->
+  <rect id="sampleBand" class="band" x="430" y="115" width="20" height="30"/>
 
   <!-- Detector -->
-  <rect x="660" y="70" width="100" height="80" fill="#ffe0b2" stroke="#333"/>
-  <text x="680" y="65" font-size="12">Detector</text>
+  <rect id="detectorBox" x="700" y="90" width="100" height="80" fill="#ffe0b2" stroke="#333"/>
+  <circle id="detectorLight" cx="750" cy="130" r="8" fill="#999"/>
+  <text x="715" y="80" font-size="12">Detector</text>
 
-  <!-- Flow Lines -->
-  <line x1="100" y1="110" x2="140" y2="110" stroke="#000" stroke-width="3"/>
-  <line x1="230" y1="110" x2="280" y2="110" stroke="#000" stroke-width="3"/>
-  <line x1="370" y1="110" x2="420" y2="110" stroke="#000" stroke-width="3"/>
-  <line x1="600" y1="110" x2="660" y2="110" stroke="#000" stroke-width="3"/>
+  <!-- Tubing -->
+  <path id="tube1" class="tube" d="M110 130 H160"/>
+  <path id="tube2" class="tube" d="M250 130 H300"/>
+  <path id="tube3" class="tube" d="M380 130 H430"/>
+  <path id="tube4" class="tube" d="M630 130 H700"/>
 
-  <!-- Flow Dot -->
-  <circle id="flowDot" cx="100" cy="110" r="6" fill="#1565c0" opacity="0"/>
 </svg>

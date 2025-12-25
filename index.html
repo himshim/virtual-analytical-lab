@@ -1,40 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Virtual HPLC – Experiment 1</title>
-
-  <link rel="stylesheet" href="./css/style.css" />
+  <meta charset="UTF-8">
+  <title>Virtual Analytical Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./css/global.css">
 </head>
-
 <body>
-  <header>
-    <h1>Virtual HPLC Laboratory</h1>
-    <p>Experiment 1: Identification of Parts & Working Sequence</p>
-  </header>
 
-  <main>
-    <!-- PART IDENTIFICATION -->
-    <section class="card">
-      <h2>Part A: Identify HPLC Components</h2>
-      <p>Select the correct name for each component.</p>
+<h1>Virtual Analytical Lab</h1>
+<p class="subtitle">Select the instrument you want to use</p>
 
-      <div id="parts-container"></div>
-    </section>
+<div class="instrument-grid">
+  <a class="instrument-card active"
+     href="./instruments/hplc/index.html">
+    <h2>HPLC</h2>
+    <p>High Performance Liquid Chromatography</p>
+  </a>
 
-    <!-- SEQUENCE ARRANGEMENT -->
-    <section class="card">
-      <h2>Part B: Arrange Working Sequence</h2>
-      <p>Arrange components in the order they operate during analysis.</p>
+  <div class="instrument-card disabled">
+    <h2>UV–Visible</h2>
+    <p>Coming Soon</p>
+  </div>
 
-      <div id="sequence-area"></div>
-      <button id="checkSequence">Check Sequence</button>
-      <p id="sequenceResult"></p>
-    </section>
+  <div class="instrument-card disabled">
+    <h2>GC</h2>
+    <p>Coming Soon</p>
+  </div>
+</div>
 
-    <!-- OBSERVATION -->
-    <section class="card hidden" id="observation">
+</body>
+</html>    <section class="card hidden" id="observation">
       <h2>Observation & Conclusion</h2>
       <p id="observationText"></p>
     </section>

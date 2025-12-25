@@ -1,18 +1,25 @@
-/* ===============================
-   GUARANTEED-STABLE HPLC GRAPH
-   =============================== */
+/* ==========================================
+   STABLE REAL-TIME HPLC GRAPH
+   STEP 2: TRUE PEAK ELUTION OVER TIME
+   ========================================== */
 
+/* -------- GLOBAL STATE -------- */
 let chart;
 let timer = null;
 let time = 0;
-const MAX_TIME = 10;
+const MAX_TIME = 10; // minutes
 
+let injecting = false;
+let peakRT = null;
+let peakWidth = 0.15;
+
+/* -------- DOM -------- */
 const statusEl = document.getElementById("status");
 const pumpBtn = document.getElementById("pumpBtn");
 const injectBtn = document.getElementById("injectBtn");
 const rtDisplay = document.getElementById("rtDisplay");
 
-/* ---------- INIT GRAPH ---------- */
+/* -------- INIT GRAPH -------- */
 function initGraph() {
   const ctx = document.getElementById("graphCanvas").getContext("2d");
 
@@ -29,6 +36,7 @@ function initGraph() {
     },
     options: {
       animation: false,
+      responsive: true,
       scales: {
         x: {
           type: "linear",
@@ -46,39 +54,50 @@ function initGraph() {
   });
 }
 
-/* ---------- BASELINE ---------- */
-function startBaseline() {
+/* -------- BASELINE + RUN LOOP -------- */
+function startBaselineAndRun() {
   stopRun();
   resetGraph();
 
   timer = setInterval(() => {
     time += 0.05;
-    const noise = (Math.random() - 0.5) * 0.02;
-    addPoint(time, noise);
+
+    /* Baseline noise */
+    let signal = (Math.random() - 0.5) * 0.02;
+
+    /* True peak elution (Gaussian over time) */
+    if (injecting && peakRT !== null) {
+      const peak =
+        Math.exp(
+          -Math.pow(time - peakRT, 2) /
+          (2 * Math.pow(peakWidth, 2))
+        );
+
+      signal += peak;
+    }
+
+    addPoint(time, signal);
 
     if (time >= MAX_TIME) stopRun();
   }, 100);
 }
 
-/* ---------- INJECTION ---------- */
+/* -------- INJECT SAMPLE -------- */
 function injectSample() {
   resetGraph();
-  const rt = 4.2; // fixed RT for now
-  rtDisplay.textContent = `Estimated RT: ${rt.toFixed(2)} min`;
+  injecting = true;
 
-  // baseline first
-  startBaseline();
+  /* For now, fixed RT (STEP 1 will calculate this) */
+  peakRT = 4.2;
+  peakWidth = 0.25;
 
-  // injector → column delay
-  setTimeout(() => {
-    for (let t = rt - 0.3; t <= rt + 0.3; t += 0.02) {
-      const height = Math.exp(-Math.pow(t - rt, 2) / 0.01);
-      addPoint(t, height);
-    }
-  }, 600);
+  rtDisplay.textContent =
+    `Estimated RT: ${peakRT.toFixed(2)} min`;
+
+  startBaselineAndRun();
 }
 
-/* ---------- HELPERS ---------- */
+/* -------- HELPERS -------- */
 function addPoint(x, y) {
   chart.data.datasets[0].data.push({ x, y });
   chart.update("none");
@@ -98,10 +117,8 @@ function stopRun() {
   }
 }
 
-/* ---------- BUTTONS ---------- */
+/* -------- BUTTON LOGIC -------- */
 pumpBtn.onclick = () => {
-  if (!chart) initGraph();
-
   const running = pumpBtn.textContent.includes("STOP");
 
   if (running) {
@@ -113,7 +130,8 @@ pumpBtn.onclick = () => {
     pumpBtn.textContent = "Pump STOP";
     statusEl.textContent = "Status: MOBILE PHASE RUNNING";
     injectBtn.disabled = false;
-    startBaseline();
+    injecting = false;
+    startBaselineAndRun();
   }
 };
 
@@ -122,5 +140,5 @@ injectBtn.onclick = () => {
   injectSample();
 };
 
-/* ---------- START ---------- */
+/* -------- STARTUP -------- */
 initGraph();

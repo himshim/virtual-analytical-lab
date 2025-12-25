@@ -4,8 +4,12 @@ export const hplcState = {
   injected: false,
 
   column: {
-    factor: 1.0,      // placeholder (used in next steps)
-    resistance: 1.2
+    type: "C18",        // C18 | C8 | Silica
+    length: 150,        // mm
+    particleSize: 5,    // µm
+    factor: 1.0,
+    resistance: 1.2,
+    efficiency: 1.0
   },
 
   mobilePhase: {

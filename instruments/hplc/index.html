@@ -14,6 +14,12 @@
 <h1>HPLC Simulator</h1>
 <p id="status">Status: IDLE</p>
 
+<!-- ✅ DIAGRAM CONTAINER (MISSING BEFORE) -->
+<div class="instrument-card">
+  <h3>HPLC Flow Diagram</h3>
+  <div id="diagramContainer">Loading diagram…</div>
+</div>
+
 <div class="instrument-card">
   <h3>Sample</h3>
   <select id="sampleSelect">
@@ -49,6 +55,22 @@
 
 <canvas id="graphCanvas" height="220"></canvas>
 
+<!-- ✅ SVG LOAD (CRITICAL) -->
+<script>
+fetch("./hplc.diagram.svg")
+  .then(r => r.text())
+  .then(svg => {
+    document.getElementById("diagramContainer").innerHTML = svg;
+  })
+  .catch(err => {
+    document.getElementById("diagramContainer").innerHTML =
+      "<p style='color:red'>Failed to load diagram</p>";
+    console.error(err);
+  });
+</script>
+
+<!-- UI logic -->
 <script type="module" src="./hplc.ui.js"></script>
+
 </body>
 </html>

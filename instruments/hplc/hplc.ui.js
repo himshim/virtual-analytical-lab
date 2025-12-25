@@ -1,5 +1,5 @@
 /* ================================
-   HPLC UI CONTROLLER (STEP 4 FIXED)
+   HPLC UI CONTROLLER (STEP 4 – FIXED & REALTIME)
    ================================ */
 
 import { hplcState, HPLC_STATES } from "./hplc.state.js";
@@ -34,14 +34,20 @@ const solventB = document.getElementById("solventB");
 const columnType = document.getElementById("columnType");
 const sampleSelect = document.getElementById("sampleSelect");
 
+/* OPTIONAL (if present in HTML) */
+const flowVal = document.getElementById("flowVal");
+const solventBVal = document.getElementById("solventBVal");
+const rtDisplay = document.getElementById("rtDisplay");
+
 /* ================================
    INITIALIZATION
    ================================ */
 
-// Wait until SVG is injected before querying SVG elements
 setTimeout(() => {
   initAnimation();
-}, 200);
+  recalcSystem();
+  updateUI();
+}, 300);
 
 /* ================================
    CONTROL HANDLERS
@@ -49,6 +55,7 @@ setTimeout(() => {
 
 flow.oninput = () => {
   hplcState.flow = Number(flow.value);
+  if (flowVal) flowVal.textContent = flow.value;
   recalcSystem();
 };
 
@@ -56,6 +63,7 @@ solventB.oninput = () => {
   const b = Number(solventB.value);
   hplcState.mobilePhase.solventB.percent = b;
   hplcState.mobilePhase.solventA.percent = 100 - b;
+  if (solventBVal) solventBVal.textContent = `${b}% B`;
   recalcSystem();
 };
 
@@ -83,22 +91,30 @@ pumpBtn.onclick = () => {
     stopFlowAnimation();
     hplcState.systemState = HPLC_STATES.IDLE;
   }
+
+  updateUI();
 };
 
 injectBtn.onclick = () => {
   if (hplcState.systemState !== HPLC_STATES.READY) return;
 
+  hplcState.systemState = HPLC_STATES.RUNNING;
   injectSampleAnimation();
   startRun(hplcState);
+  updateUI();
 };
 
 /* ================================
-   SYSTEM UPDATE LOOP
+   SYSTEM CLOCK (1s TICK)
    ================================ */
 
 setInterval(() => {
   if (hplcState.systemState === HPLC_STATES.EQUILIBRATING) {
     tickEquilibration(hplcState);
+
+    if (!hplcState.equilibration.required) {
+      hplcState.systemState = HPLC_STATES.READY;
+    }
   }
 
   updateUI();
@@ -120,8 +136,7 @@ function recalcSystem() {
 }
 
 function updateUI() {
-  statusEl.textContent =
-    `Status: ${hplcState.systemState}`;
+  statusEl.textContent = `Status: ${hplcState.systemState}`;
 
   injectBtn.disabled =
     hplcState.systemState !== HPLC_STATES.READY;
@@ -131,4 +146,15 @@ function updateUI() {
 
   pressureDisplay.style.color =
     hplcState.warning ? "#d32f2f" : "#2e7d32";
+
+  /* Estimated RT display (educational) */
+  if (rtDisplay) {
+    const comp = hplcState.sample.components[0];
+    const rt =
+      2 +
+      (comp.hydrophobicity * hplcState.column.factor) /
+      (hplcState.mobilePhase.strength * hplcState.flow);
+
+    rtDisplay.textContent = `Estimated RT: ${rt.toFixed(2)} min`;
+  }
 }

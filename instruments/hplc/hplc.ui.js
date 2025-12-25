@@ -1,145 +1,60 @@
 import { hplcState, HPLC_STATES } from "./hplc.state.js";
+import { calculateEstimatedRT } from "./hplc.logic.js";
 import {
-  updatePressure,
-  updateMobilePhase,
-  updateColumn,
-  tickEquilibration,
-  initGraph,
+  initRealtimeGraph,
   startBaseline,
-  injectAndRun,
-  stopGraph
-} from "./hplc.logic.js";
+  injectSample,
+  stopGraph,
+  resetGraph
+} from "./hplc.realtimeGraph.js";
 
 import {
   startFlowAnimation,
   stopFlowAnimation,
-  injectSampleAnimation,
-  initAnimation
+  initAnimation,
+  injectSampleAnimation
 } from "./hplc.animation.js";
 
-import { samples } from "./samples.js";
-
-/* ================================
-   DOM
-   ================================ */
-const statusEl = document.getElementById("status");
+/* DOM */
 const pumpBtn = document.getElementById("pumpBtn");
 const injectBtn = document.getElementById("injectBtn");
-const pressureDisplay = document.getElementById("pressureDisplay");
+const statusEl = document.getElementById("status");
 const rtDisplay = document.getElementById("rtDisplay");
 
-const flow = document.getElementById("flow");
-const solventB = document.getElementById("solventB");
-const columnType = document.getElementById("columnType");
-const sampleSelect = document.getElementById("sampleSelect");
-const wavelength = document.getElementById("wavelength");
-const sensitivity = document.getElementById("sensitivity");
-
-/* ================================
-   INITIALIZATION
-   ================================ */
+/* INIT */
 setTimeout(() => {
   initAnimation();
-  initGraph();          // ✅ GRAPH EXISTS IMMEDIATELY
-  recalcSystem();
-  updateUI();
+  initRealtimeGraph();
+  statusEl.textContent = "Status: IDLE";
 }, 300);
 
-/* ================================
-   CONTROLS
-   ================================ */
-flow.oninput = () => {
-  hplcState.flow = Number(flow.value);
-  recalcSystem();
-};
-
-solventB.oninput = () => {
-  const b = Number(solventB.value);
-  hplcState.mobilePhase.solventB.percent = b;
-  hplcState.mobilePhase.solventA.percent = 100 - b;
-  recalcSystem();
-};
-
-columnType.onchange = () => {
-  hplcState.column.type = columnType.value;
-  recalcSystem();
-};
-
-sampleSelect.onchange = () => {
-  hplcState.sample = samples[sampleSelect.value];
-};
-
-wavelength.oninput = () => {
-  hplcState.detector.wavelength = Number(wavelength.value);
-};
-
-sensitivity.oninput = () => {
-  hplcState.detector.sensitivity = Number(sensitivity.value);
-};
-
+/* PUMP */
 pumpBtn.onclick = () => {
   hplcState.pumpOn = !hplcState.pumpOn;
-  pumpBtn.textContent = hplcState.pumpOn ? "Pump ON" : "Pump OFF";
 
   if (hplcState.pumpOn) {
+    pumpBtn.textContent = "Pump ON";
+    hplcState.systemState = HPLC_STATES.READY;
     startFlowAnimation();
-    hplcState.systemState = HPLC_STATES.EQUILIBRATING;
-    hplcState.equilibration.timeLeft = 5;
-    startBaseline(hplcState);   // ✅ BASELINE STARTS
+    startBaseline();
   } else {
+    pumpBtn.textContent = "Pump OFF";
+    hplcState.systemState = HPLC_STATES.IDLE;
     stopFlowAnimation();
     stopGraph();
-    hplcState.systemState = HPLC_STATES.IDLE;
-    initGraph();                // ✅ RESET GRAPH
   }
 
-  updateUI();
-};
-
-injectBtn.onclick = () => {
-  if (hplcState.systemState !== HPLC_STATES.READY) return;
-
-  injectSampleAnimation();
-  injectAndRun(hplcState);      // ✅ RESET + RUN
-  updateUI();
-};
-
-/* ================================
-   SYSTEM CLOCK
-   ================================ */
-setInterval(() => {
-  if (hplcState.systemState === HPLC_STATES.EQUILIBRATING) {
-    tickEquilibration(hplcState);
-    if (!hplcState.equilibration.required) {
-      hplcState.systemState = HPLC_STATES.READY;
-    }
-  }
-  updateUI();
-}, 1000);
-
-/* ================================
-   HELPERS
-   ================================ */
-function recalcSystem() {
-  updateMobilePhase(hplcState);
-  updateColumn(hplcState);
-  updatePressure(hplcState);
-}
-
-function updateUI() {
+  injectBtn.disabled = !hplcState.pumpOn;
   statusEl.textContent = `Status: ${hplcState.systemState}`;
+};
 
-  injectBtn.disabled =
-    hplcState.systemState !== HPLC_STATES.READY;
+/* INJECT */
+injectBtn.onclick = () => {
+  resetGraph();
+  injectSampleAnimation();
 
-  pressureDisplay.textContent =
-    `Pressure: ${hplcState.pressure.toFixed(0)} bar`;
-
-  const comp = hplcState.sample.components[0];
-  const rt =
-    2 +
-    (comp.hydrophobicity * hplcState.column.factor) /
-    (hplcState.mobilePhase.strength * hplcState.flow);
-
+  const rt = calculateEstimatedRT(hplcState);
   rtDisplay.textContent = `Estimated RT: ${rt.toFixed(2)} min`;
-}
+
+  injectSample(rt);
+};

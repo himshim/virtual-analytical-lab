@@ -14,6 +14,13 @@
 <h1>HPLC Simulator</h1>
 <p id="status">Status: IDLE</p>
 
+<!-- ================== DIAGRAM ================== -->
+<div class="instrument-card">
+  <h3>HPLC Flow Diagram</h3>
+  <div id="diagramContainer">Loading diagram…</div>
+</div>
+
+<!-- ================== SAMPLE ================== -->
 <div class="instrument-card">
   <h3>Sample</h3>
   <select id="sampleSelect">
@@ -24,6 +31,7 @@
   </select>
 </div>
 
+<!-- ================== COLUMN ================== -->
 <div class="instrument-card">
   <h3>Column</h3>
   <select id="columnType">
@@ -33,11 +41,13 @@
   </select>
 </div>
 
+<!-- ================== MOBILE PHASE ================== -->
 <div class="instrument-card">
-  <h3>Mobile Phase</h3>
+  <h3>Mobile Phase (%B)</h3>
   <input id="solventB" type="range" min="10" max="90" step="5" value="40">
 </div>
 
+<!-- ================== DETECTOR ================== -->
 <div class="instrument-card">
   <h3>Detector (UV)</h3>
 
@@ -50,6 +60,7 @@
   <span id="sensitivityVal">1.0</span>
 </div>
 
+<!-- ================== PUMP ================== -->
 <div class="instrument-card">
   <h3>Pump</h3>
   <input id="flow" type="range" min="0.5" max="2.5" step="0.1" value="1">
@@ -61,8 +72,24 @@
 
 <p id="rtDisplay"></p>
 
+<!-- ================== GRAPH ================== -->
 <canvas id="graphCanvas" height="220"></canvas>
 
+<!-- ================== SVG LOAD (CRITICAL) ================== -->
+<script>
+fetch("./hplc.diagram.svg")
+  .then(r => r.text())
+  .then(svg => {
+    document.getElementById("diagramContainer").innerHTML = svg;
+  })
+  .catch(err => {
+    document.getElementById("diagramContainer").innerHTML =
+      "<p style='color:red'>Diagram failed to load</p>";
+    console.error(err);
+  });
+</script>
+
+<!-- ================== MAIN LOGIC ================== -->
 <script type="module" src="./hplc.ui.js"></script>
 
 </body>

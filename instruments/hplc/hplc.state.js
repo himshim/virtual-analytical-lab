@@ -1,12 +1,14 @@
+import { samples } from "./samples.js";
+
 export const hplcState = {
   pumpOn: false,
   flow: 1.0,
   injected: false,
 
   column: {
-    type: "C18",        // C18 | C8 | Silica
-    length: 150,        // mm
-    particleSize: 5,    // µm
+    type: "C18",
+    length: 150,
+    particleSize: 5,
     factor: 1.0,
     resistance: 1.2,
     efficiency: 1.0
@@ -26,6 +28,8 @@ export const hplcState = {
     strength: 0.6,
     viscosity: 0.76
   },
+
+  sample: samples.mixture_pc,   // default sample
 
   pressure: 0,
   maxPressure: 400,

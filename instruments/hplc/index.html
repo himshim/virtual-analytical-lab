@@ -16,6 +16,11 @@
   <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
+<!-- ===== STATUS PANEL ===== -->
+<div class="instrument-card" style="background:#eef3fb">
+  <strong id="status">Status: IDLE</strong>
+</div>
+
 <main class="instrument-grid">
 
   <!-- DIAGRAM -->
@@ -24,7 +29,7 @@
     <div id="diagramContainer">Loading diagram…</div>
   </div>
 
-  <!-- CONTROLS -->
+  <!-- METHOD CONTROLS -->
   <div class="instrument-card">
     <h2>Method Controls</h2>
 
@@ -49,7 +54,7 @@
     <span id="sensitivityVal">1.0</span>
   </div>
 
-  <!-- PUMP -->
+  <!-- INSTRUMENT CONTROL -->
   <div class="instrument-card">
     <h2>Instrument Control</h2>
     <button id="pumpBtn">Pump START</button>

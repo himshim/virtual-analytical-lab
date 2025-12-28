@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>HPLC Simulator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="../../css/global.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -12,23 +13,51 @@
 
 <header class="hero">
   <h1>HPLC Simulator</h1>
-  <p>Reversed-phase HPLC workflow with real-time chromatogram</p>
+  <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
 <main class="instrument-grid">
 
+  <!-- DIAGRAM -->
   <div class="instrument-card">
     <h2>HPLC Flow Diagram</h2>
     <div id="diagramContainer">Loading diagram…</div>
   </div>
 
+  <!-- CONTROLS -->
   <div class="instrument-card">
-    <h2>Controls</h2>
+    <h2>Method Controls</h2>
+
+    <label>Flow rate (mL/min)</label><br>
+    <input id="flowInput" type="range" min="0.5" max="2.5" step="0.1" value="1.0">
+    <span id="flowVal">1.0</span><br><br>
+
+    <label>Mobile phase (%B)</label><br>
+    <input id="organicInput" type="range" min="10" max="90" step="5" value="40">
+    <span id="organicVal">40%</span><br><br>
+
+    <label>Compound</label><br>
+    <select id="compoundSelect">
+      <option value="paracetamol">Paracetamol</option>
+      <option value="caffeine" selected>Caffeine</option>
+      <option value="aspirin">Aspirin</option>
+      <option value="ibuprofen">Ibuprofen</option>
+    </select><br><br>
+
+    <label>Detector sensitivity</label><br>
+    <input id="sensitivityInput" type="range" min="0.5" max="5" step="0.5" value="1">
+    <span id="sensitivityVal">1.0</span>
+  </div>
+
+  <!-- PUMP -->
+  <div class="instrument-card">
+    <h2>Instrument Control</h2>
     <button id="pumpBtn">Pump START</button>
     <button id="injectBtn" disabled>Inject Sample</button>
     <p id="rtDisplay">Estimated RT: —</p>
   </div>
 
+  <!-- GRAPH -->
   <div class="instrument-card">
     <h2>Chromatogram</h2>
     <canvas id="graphCanvas" height="260"></canvas>
@@ -38,21 +67,23 @@
 
 <footer>
   <p>
-    Diagram & simulator © Him Shim •  
+    Simulator & diagram © Him Shim •
     <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">
       GitHub Repository
     </a>
   </p>
 </footer>
 
+<!-- SVG -->
 <script>
 fetch("./hplc.diagram.svg")
   .then(r => r.text())
-  .then(svg => {
-    document.getElementById("diagramContainer").innerHTML = svg;
-  });
+  .then(svg => document.getElementById("diagramContainer").innerHTML = svg);
 </script>
 
+<!-- LOGIC -->
+<script src="./samples.js"></script>
+<script src="./hplc.engine.js"></script>
 <script src="./hplc.stable.js"></script>
 
 </body>

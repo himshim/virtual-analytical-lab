@@ -1,5 +1,5 @@
 /* ==========================================
-   HPLC UI + ANIMATION CONTROLLER
+   HPLC UI + ANIMATION CONTROLLER (FIXED X AXIS)
    ========================================== */
 
 let chart;
@@ -29,17 +29,57 @@ const compoundSelect = document.getElementById("compoundSelect");
 const sensitivityInput = document.getElementById("sensitivityInput");
 
 /* Diagram */
-let pumpBox, injectorBox, detectorLight, sampleBand, tubes;
+let pumpBox, injectorBox, detectorLight, tubes;
 
-/* GRAPH */
+/* ---------- GRAPH (FIXED) ---------- */
 function initGraph() {
-  chart = new Chart(
-    document.getElementById("graphCanvas").getContext("2d"),
-    { type: "line", data: { datasets: [{ data: [], borderColor: "#1565c0", pointRadius: 0 }] }, options: { animation: false } }
-  );
+  const ctx = document.getElementById("graphCanvas").getContext("2d");
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      datasets: [{
+        label: "HPLC Chromatogram",
+        data: [],
+        borderColor: "#1565c0",
+        borderWidth: 2,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      animation: false,
+      responsive: true,
+      parsing: false,              // 👈 IMPORTANT
+      scales: {
+        x: {
+          type: "linear",           // 👈 THIS WAS MISSING
+          min: 0,
+          max: MAX_TIME,
+          title: {
+            display: true,
+            text: "Time (min)"
+          }
+        },
+        y: {
+          min: -0.3,
+          max: 3.0,
+          title: {
+            display: true,
+            text: "Response (AU)"
+          }
+        }
+      }
+    }
+  });
 }
 
-/* RUN LOOP */
+/* ---------- RT CALC ---------- */
+function calculateRT() {
+  const elutionStrength = 0.3 + (organicPercent / 100) * 0.7;
+  return 1.0 + (currentCompound.hydrophobicity) / (flowRate * elutionStrength);
+}
+
+/* ---------- RUN LOOP ---------- */
 function startRun() {
   stopRun();
   resetGraph();
@@ -48,40 +88,44 @@ function startRun() {
   timer = setInterval(() => {
     time += 0.05;
 
-    let signal = HPLC_ENGINE.baselineNoise(sensitivity);
+    let signal = (Math.random() - 0.5) * 0.02 * sensitivity;
 
     if (injecting && time >= injectionTime) {
-      signal += HPLC_ENGINE.peakSignal(
-        time,
-        peakRT,
-        peakWidth,
-        currentCompound.height * sensitivity
-      );
+      signal += Math.exp(
+        -Math.pow(time - peakRT, 2) /
+        (2 * peakWidth * peakWidth)
+      ) * sensitivity;
+
       detectorLight?.setAttribute("fill", "#ff5252");
     } else {
       detectorLight?.setAttribute("fill", "#999");
     }
 
-    chart.data.datasets[0].data.push({ x: time, y: signal });
+    chart.data.datasets[0].data.push({
+      x: time,      // 👈 TRUE TIME AXIS
+      y: signal
+    });
+
     chart.update("none");
 
     if (time >= MAX_TIME) stopRun();
   }, 100);
 }
 
-/* INJECT */
+/* ---------- INJECT ---------- */
 function injectSample() {
   resetGraph();
   injecting = true;
-  injectionTime = HPLC_ENGINE.VOID_TIME;
-  peakRT = HPLC_ENGINE.calculateRT(flowRate, organicPercent, currentCompound);
+  injectionTime = 1.0;
+  peakRT = calculateRT();
 
   rtDisplay.textContent = `Estimated RT: ${peakRT.toFixed(2)} min`;
   injectorBox?.classList.add("injectFlash");
+
   startRun();
 }
 
-/* HELPERS */
+/* ---------- HELPERS ---------- */
 function resetGraph() {
   stopRun();
   time = 0;
@@ -94,18 +138,19 @@ function stopRun() {
   animateFlow(false);
 }
 
+/* ---------- DIAGRAM ---------- */
 function animateFlow(on) {
   tubes?.forEach(t => t.classList.toggle("flow", on));
   pumpBox?.classList.toggle("pulse", on);
 }
 
-/* CONTROLS */
+/* ---------- CONTROLS ---------- */
 flowInput.oninput = () => flowRate = Number(flowInput.value);
 organicInput.oninput = () => organicPercent = Number(organicInput.value);
 compoundSelect.onchange = () => currentCompound = SAMPLES[compoundSelect.value];
 sensitivityInput.oninput = () => sensitivity = Number(sensitivityInput.value);
 
-/* BUTTONS */
+/* ---------- BUTTONS ---------- */
 pumpBtn.onclick = () => {
   const running = pumpBtn.textContent.includes("STOP");
   pumpBtn.textContent = running ? "Pump START" : "Pump STOP";
@@ -115,14 +160,13 @@ pumpBtn.onclick = () => {
 
 injectBtn.onclick = injectSample;
 
-/* SVG HOOKS */
+/* ---------- SVG HOOK ---------- */
 setTimeout(() => {
   pumpBox = document.getElementById("pumpBox");
   injectorBox = document.getElementById("injectorBox");
   detectorLight = document.getElementById("detectorLight");
-  sampleBand = document.getElementById("sampleBand");
   tubes = document.querySelectorAll(".tube");
 }, 500);
 
-/* START */
+/* ---------- START ---------- */
 initGraph();

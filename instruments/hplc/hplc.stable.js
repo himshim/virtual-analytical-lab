@@ -1,115 +1,106 @@
 /* ==========================================
-   HPLC UI + ANIMATION CONTROLLER
-   WITH EXPLICIT SYSTEM STATES
+   HPLC CONTROLLER WITH STATE-BASED UI LOCKOUTS
    ========================================== */
 
-/* ===== HPLC STATES ===== */
 const HPLC_STATES = {
   IDLE: "IDLE",
-  PUMPING: "PUMPING (Mobile phase flowing)",
-  EQUILIBRATING: "EQUILIBRATING (Column stabilizing)",
+  PUMPING: "PUMPING",
   READY: "READY FOR INJECTION",
   INJECTED: "SAMPLE INJECTED",
-  RUNNING: "RUNNING (Analytes eluting)",
+  RUNNING: "RUNNING",
   COMPLETED: "RUN COMPLETED",
   STOPPED: "STOPPED BY USER"
 };
 
 let currentState = HPLC_STATES.IDLE;
 
-/* ===== TIME & RUN ===== */
+/* TIME */
 let chart;
 let timer = null;
 let time = 0;
 const MAX_TIME = 10;
 
-/* ===== METHOD PARAMETERS ===== */
+/* METHOD */
 let flowRate = 1.0;
 let organicPercent = 40;
 let sensitivity = 1.0;
 let currentCompound = SAMPLES.caffeine;
 
-/* ===== PEAK ===== */
+/* PEAK */
 let injecting = false;
 let injectionTime = null;
 let peakRT = null;
 let peakWidth = 0.25;
 
-/* ===== DOM ===== */
+/* DOM */
 const statusEl = document.getElementById("status");
 const pumpBtn = document.getElementById("pumpBtn");
 const injectBtn = document.getElementById("injectBtn");
-const rtDisplay = document.getElementById("rtDisplay");
 
 const flowInput = document.getElementById("flowInput");
 const organicInput = document.getElementById("organicInput");
 const compoundSelect = document.getElementById("compoundSelect");
 const sensitivityInput = document.getElementById("sensitivityInput");
 
-/* ===== DIAGRAM ===== */
+/* DIAGRAM */
 let pumpBox, injectorBox, detectorLight, tubes;
 
-/* ===== UTIL ===== */
+/* ===== STATE HANDLER ===== */
 function setState(state) {
   currentState = state;
   statusEl.textContent = `Status: ${state}`;
+
+  const lockMethod = [
+    HPLC_STATES.PUMPING,
+    HPLC_STATES.READY,
+    HPLC_STATES.INJECTED,
+    HPLC_STATES.RUNNING,
+    HPLC_STATES.COMPLETED
+  ].includes(state);
+
+  flowInput.disabled = lockMethod;
+  organicInput.disabled = lockMethod;
+  compoundSelect.disabled = lockMethod;
+
+  injectBtn.disabled = state !== HPLC_STATES.READY;
 }
 
-/* ===== GRAPH INIT ===== */
+/* ===== GRAPH ===== */
 function initGraph() {
   chart = new Chart(
     document.getElementById("graphCanvas").getContext("2d"),
     {
       type: "line",
-      data: {
-        datasets: [{
-          label: "HPLC Chromatogram",
-          data: [],
-          borderColor: "#1565c0",
-          borderWidth: 2,
-          pointRadius: 0
-        }]
-      },
+      data: { datasets: [{ data: [], borderColor: "#1565c0", pointRadius: 0 }] },
       options: {
         animation: false,
         parsing: false,
         scales: {
-          x: {
-            type: "linear",
-            min: 0,
-            max: MAX_TIME,
-            title: { display: true, text: "Time (min)" }
-          },
-          y: {
-            min: -0.3,
-            max: 3.0,
-            title: { display: true, text: "Response (AU)" }
-          }
+          x: { type: "linear", min: 0, max: MAX_TIME },
+          y: { min: -0.3, max: 3.0 }
         }
       }
     }
   );
 }
 
-/* ===== RT CALC ===== */
+/* ===== RT ===== */
 function calculateRT() {
   const elutionStrength = 0.3 + (organicPercent / 100) * 0.7;
-  return 1.0 + (currentCompound.hydrophobicity) / (flowRate * elutionStrength);
+  return 1.0 + currentCompound.hydrophobicity / (flowRate * elutionStrength);
 }
 
-/* ===== RUN LOOP ===== */
+/* ===== RUN ===== */
 function startRun() {
   stopRun();
   resetGraph();
   animateFlow(true);
-
   setState(HPLC_STATES.PUMPING);
 
-  /* Equilibration phase */
   setTimeout(() => {
-    if (currentState !== HPLC_STATES.PUMPING) return;
-    setState(HPLC_STATES.READY);
-    injectBtn.disabled = false;
+    if (currentState === HPLC_STATES.PUMPING) {
+      setState(HPLC_STATES.READY);
+    }
   }, 2000);
 
   timer = setInterval(() => {
@@ -119,12 +110,7 @@ function startRun() {
 
     if (injecting && time >= injectionTime) {
       setState(HPLC_STATES.RUNNING);
-
-      signal += Math.exp(
-        -Math.pow(time - peakRT, 2) /
-        (2 * peakWidth * peakWidth)
-      ) * sensitivity;
-
+      signal += Math.exp(-(time - peakRT) ** 2 / (2 * peakWidth ** 2)) * sensitivity;
       detectorLight?.setAttribute("fill", "#ff5252");
     } else {
       detectorLight?.setAttribute("fill", "#999");
@@ -147,10 +133,7 @@ function injectSample() {
   injecting = true;
   injectionTime = 1.0;
   peakRT = calculateRT();
-
-  rtDisplay.textContent = `Estimated RT: ${peakRT.toFixed(2)} min`;
   injectorBox?.classList.add("injectFlash");
-
   setState(HPLC_STATES.INJECTED);
 }
 
@@ -186,19 +169,17 @@ pumpBtn.onclick = () => {
 
   if (running) {
     pumpBtn.textContent = "Pump START";
-    injectBtn.disabled = true;
     setState(HPLC_STATES.STOPPED);
     stopRun();
   } else {
     pumpBtn.textContent = "Pump STOP";
-    injectBtn.disabled = true;
     startRun();
   }
 };
 
 injectBtn.onclick = injectSample;
 
-/* ===== SVG HOOK ===== */
+/* ===== SVG ===== */
 setTimeout(() => {
   pumpBox = document.getElementById("pumpBox");
   injectorBox = document.getElementById("injectorBox");

@@ -1,5 +1,5 @@
 /* ==========================================
-   HPLC CONTROLLER WITH STATE-BASED UI LOCKOUTS
+   HPLC CONTROLLER WITH CORRECT UI LOCKOUTS
    ========================================== */
 
 const HPLC_STATES = {
@@ -50,18 +50,14 @@ function setState(state) {
   currentState = state;
   statusEl.textContent = `Status: ${state}`;
 
-  const lockMethod = [
-    HPLC_STATES.PUMPING,
-    HPLC_STATES.READY,
-    HPLC_STATES.INJECTED,
-    HPLC_STATES.RUNNING,
-    HPLC_STATES.COMPLETED
-  ].includes(state);
+  /* Method parameters lock once pump is ON */
+  const methodLocked = state !== HPLC_STATES.IDLE;
 
-  flowInput.disabled = lockMethod;
-  organicInput.disabled = lockMethod;
-  compoundSelect.disabled = lockMethod;
+  flowInput.disabled = methodLocked;
+  organicInput.disabled = methodLocked;
+  compoundSelect.disabled = methodLocked;
 
+  /* Injection allowed only when READY */
   injectBtn.disabled = state !== HPLC_STATES.READY;
 }
 
@@ -71,7 +67,13 @@ function initGraph() {
     document.getElementById("graphCanvas").getContext("2d"),
     {
       type: "line",
-      data: { datasets: [{ data: [], borderColor: "#1565c0", pointRadius: 0 }] },
+      data: {
+        datasets: [{
+          data: [],
+          borderColor: "#1565c0",
+          pointRadius: 0
+        }]
+      },
       options: {
         animation: false,
         parsing: false,
@@ -97,6 +99,7 @@ function startRun() {
   animateFlow(true);
   setState(HPLC_STATES.PUMPING);
 
+  /* Simulated equilibration */
   setTimeout(() => {
     if (currentState === HPLC_STATES.PUMPING) {
       setState(HPLC_STATES.READY);
@@ -110,7 +113,11 @@ function startRun() {
 
     if (injecting && time >= injectionTime) {
       setState(HPLC_STATES.RUNNING);
-      signal += Math.exp(-(time - peakRT) ** 2 / (2 * peakWidth ** 2)) * sensitivity;
+      signal += Math.exp(
+        -Math.pow(time - peakRT, 2) /
+        (2 * peakWidth * peakWidth)
+      ) * sensitivity;
+
       detectorLight?.setAttribute("fill", "#ff5252");
     } else {
       detectorLight?.setAttribute("fill", "#999");

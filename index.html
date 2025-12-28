@@ -1,96 +1,51 @@
-/* ===== GLOBAL ===== */
-* {
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtual Analytical Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/global.css" />
+</head>
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: #f4f6f8;
-  color: #222;
-}
+<body class="landing">
 
-/* ===== LANDING ===== */
-.landing {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
+<header class="hero">
+  <h1>Virtual Analytical Lab</h1>
+  <p>
+    Interactive, open-source simulations of analytical instruments  
+    for pharmacy and chemistry education.
+  </p>
+</header>
 
-.hero {
-  background: linear-gradient(135deg, #1565c0, #1e88e5);
-  color: white;
-  padding: 60px 20px;
-  text-align: center;
-}
+<section class="instrument-grid">
 
-.hero h1 {
-  margin-bottom: 10px;
-  font-size: 2.6rem;
-}
+  <a class="instrument-card" href="instruments/hplc/index.html">
+    <h2>HPLC Simulator</h2>
+    <p>Reversed-phase HPLC with real-time chromatogram, injector logic and detector response.</p>
+    <span>Open Simulator →</span>
+  </a>
 
-.hero p {
-  font-size: 1.2rem;
-  opacity: 0.95;
-}
+  <div class="instrument-card disabled">
+    <h2>GC Simulator</h2>
+    <p>Coming soon</p>
+  </div>
 
-.instrument-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  padding: 40px;
-  max-width: 1100px;
-  margin: auto;
-}
+  <div class="instrument-card disabled">
+    <h2>UV-Vis</h2>
+    <p>Coming soon</p>
+  </div>
 
-.instrument-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
+</section>
 
-.instrument-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-}
+<footer>
+  <p>
+    Maintained by <strong>Him Shim</strong> •  
+    Open-source on  
+    <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">
+      GitHub
+    </a>
+  </p>
+</footer>
 
-.instrument-card span {
-  display: inline-block;
-  margin-top: 16px;
-  color: #1565c0;
-  font-weight: 600;
-}
-
-.instrument-card.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* ===== FOOTER ===== */
-footer {
-  margin-top: auto;
-  padding: 20px;
-  text-align: center;
-  font-size: 0.9rem;
-  background: #eaecef;
-}
-
-footer a {
-  color: #1565c0;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-/* ===== HPLC PAGE ===== */
-.instrument-card {
-  margin-bottom: 24px;
-}
-
-canvas {
-  background: white;
-  border-radius: 8px;
-}
+</body>
+</html>

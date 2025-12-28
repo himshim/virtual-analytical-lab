@@ -1,67 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>HPLC Simulator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="../../css/global.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../../css/global.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<h1>HPLC Simulator</h1>
-<p id="status">Status: IDLE</p>
+<header class="hero">
+  <h1>HPLC Simulator</h1>
+  <p>Reversed-phase HPLC workflow with real-time chromatogram</p>
+</header>
 
-<div class="instrument-card">
-  <h3>HPLC Flow Diagram</h3>
-  <div id="diagramContainer">Loading diagram…</div>
-</div>
+<main class="instrument-grid">
 
-<div class="instrument-card">
-  <h3>Method Parameters</h3>
+  <div class="instrument-card">
+    <h2>HPLC Flow Diagram</h2>
+    <div id="diagramContainer">Loading diagram…</div>
+  </div>
 
-  <label>Flow Rate (mL/min)</label><br>
-  <input id="flowInput" type="range" min="0.5" max="2.5" step="0.1" value="1.0">
-  <span id="flowVal">1.0</span><br><br>
+  <div class="instrument-card">
+    <h2>Controls</h2>
+    <button id="pumpBtn">Pump START</button>
+    <button id="injectBtn" disabled>Inject Sample</button>
+    <p id="rtDisplay">Estimated RT: —</p>
+  </div>
 
-  <label>Mobile Phase (%B)</label><br>
-  <input id="organicInput" type="range" min="10" max="90" step="5" value="40">
-  <span id="organicVal">40%</span><br><br>
+  <div class="instrument-card">
+    <h2>Chromatogram</h2>
+    <canvas id="graphCanvas" height="260"></canvas>
+  </div>
 
-  <label>Compound</label><br>
-  <select id="compoundSelect">
-    <option value="paracetamol">Paracetamol</option>
-    <option value="caffeine" selected>Caffeine</option>
-    <option value="aspirin">Aspirin</option>
-    <option value="ibuprofen">Ibuprofen</option>
-  </select>
-</div>
+</main>
 
-<div class="instrument-card">
-  <h3>Detector</h3>
-  <label>Sensitivity</label><br>
-  <input id="sensitivityInput" type="range" min="0.5" max="5" step="0.5" value="1">
-  <span id="sensitivityVal">1.0</span>
-</div>
-
-<div class="instrument-card">
-  <button id="pumpBtn">Pump START</button>
-  <button id="injectBtn" disabled>Inject Sample</button>
-</div>
-
-<p id="rtDisplay">Estimated RT: —</p>
-<canvas id="graphCanvas" height="260"></canvas>
+<footer>
+  <p>
+    Diagram & simulator © Him Shim •  
+    <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">
+      GitHub Repository
+    </a>
+  </p>
+</footer>
 
 <script>
 fetch("./hplc.diagram.svg")
   .then(r => r.text())
-  .then(svg => document.getElementById("diagramContainer").innerHTML = svg);
+  .then(svg => {
+    document.getElementById("diagramContainer").innerHTML = svg;
+  });
 </script>
 
-<script src="./samples.js"></script>
-<script src="./hplc.engine.js"></script>
 <script src="./hplc.stable.js"></script>
 
 </body>

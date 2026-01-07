@@ -24,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const compoundSelect = document.getElementById("compoundSelect");
   const sensitivityInput = document.getElementById("sensitivityInput");
 
+  const speedInput = document.getElementById("speedInput");
+  const speedVal = document.getElementById("speedVal");
+
   /* ========= STATE HANDLER ========= */
   function setState(s) {
     state = s;
@@ -38,8 +41,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ========= SIM CLOCK ========= */
-  let t = 0;
-  const DT = 0.05;
+  let t = 0;                     // simulated minutes
+  const DT = 0.05;               // base step (min)
+  let TIME_SCALE = Number(speedInput.value); // dynamic speed
   const T_MAX = 10;
   let timer = null;
 
@@ -105,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ========= MAIN LOOP ========= */
   function tick() {
-    t += DT;
+    t += DT * TIME_SCALE;
 
     let y = baselineNoise();
 
@@ -131,12 +135,12 @@ document.addEventListener("DOMContentLoaded", () => {
     peakRT = null;
     setState(STATES.PUMPING);
 
-    timer = setInterval(tick, DT * 60 * 1000);
+    timer = setInterval(tick, 100);
 
     setTimeout(() => {
       if (state === STATES.PUMPING)
         setState(STATES.READY);
-    }, 2000);
+    }, 500);
   }
 
   function stop() {
@@ -162,7 +166,14 @@ document.addEventListener("DOMContentLoaded", () => {
     rtDisplay.textContent = `Estimated RT: ${peakRT.toFixed(2)} min`;
   };
 
+  /* ========= SPEED CONTROL ========= */
+  speedInput.oninput = () => {
+    TIME_SCALE = Number(speedInput.value);
+    speedVal.textContent = `${TIME_SCALE}×`;
+  };
+
   /* ========= INIT ========= */
+  speedVal.textContent = `${TIME_SCALE}×`;
   setState(STATES.IDLE);
 
 });

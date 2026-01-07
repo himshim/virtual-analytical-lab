@@ -40,10 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
     injectBtn.disabled = s !== STATES.READY;
   }
 
-  /* ========= SIM CLOCK ========= */
+  /* ========= SIM CLOCK (CALIBRATED) ========= */
   let t = 0;                     // simulated minutes
-  const DT = 0.05;               // base step (min)
-  let timeScale = 20;            // default speed (×)
+  const DT = 0.01;               // ⬅ smaller base step
+  let timeScale = Number(speedInput.value); // live speed
   const T_MAX = 10;
   let timer = null;
 
@@ -104,12 +104,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let peakRT = null;
 
   function baselineNoise() {
-    return (Math.random() - 0.5) * 0.04 * Number(sensitivityInput.value);
+    return (Math.random() - 0.5) * 0.03 * Number(sensitivityInput.value);
   }
 
   /* ========= MAIN LOOP ========= */
   function tick() {
-    // 🚀 APPLY SPEED HERE (LIVE)
     t += DT * timeScale;
 
     let y = baselineNoise();
@@ -136,12 +135,13 @@ document.addEventListener("DOMContentLoaded", () => {
     peakRT = null;
     setState(STATES.PUMPING);
 
-    timer = setInterval(tick, 100);
+    // ⏱ slower tick, smoother & readable
+    timer = setInterval(tick, 200);
 
     setTimeout(() => {
       if (state === STATES.PUMPING)
         setState(STATES.READY);
-    }, 500);
+    }, 600);
   }
 
   function stop() {
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rtDisplay.textContent = `Estimated RT: ${peakRT.toFixed(2)} min`;
   };
 
-  /* ========= SPEED SLIDER (FIXED) ========= */
+  /* ========= SPEED SLIDER ========= */
   timeScale = Number(speedInput.value);
   speedVal.textContent = `${timeScale}×`;
 

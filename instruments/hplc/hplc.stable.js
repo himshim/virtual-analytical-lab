@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ========= SIM CLOCK ========= */
   let t = 0;                     // simulated minutes
   const DT = 0.05;               // base step (min)
-  let TIME_SCALE = Number(speedInput.value); // dynamic speed
+  let timeScale = 20;            // default speed (×)
   const T_MAX = 10;
   let timer = null;
 
@@ -109,7 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ========= MAIN LOOP ========= */
   function tick() {
-    t += DT * TIME_SCALE;
+    // 🚀 APPLY SPEED HERE (LIVE)
+    t += DT * timeScale;
 
     let y = baselineNoise();
 
@@ -166,14 +167,16 @@ document.addEventListener("DOMContentLoaded", () => {
     rtDisplay.textContent = `Estimated RT: ${peakRT.toFixed(2)} min`;
   };
 
-  /* ========= SPEED CONTROL ========= */
-  speedInput.oninput = () => {
-    TIME_SCALE = Number(speedInput.value);
-    speedVal.textContent = `${TIME_SCALE}×`;
-  };
+  /* ========= SPEED SLIDER (FIXED) ========= */
+  timeScale = Number(speedInput.value);
+  speedVal.textContent = `${timeScale}×`;
+
+  speedInput.addEventListener("input", () => {
+    timeScale = Number(speedInput.value);
+    speedVal.textContent = `${timeScale}×`;
+  });
 
   /* ========= INIT ========= */
-  speedVal.textContent = `${TIME_SCALE}×`;
   setState(STATES.IDLE);
 
 });

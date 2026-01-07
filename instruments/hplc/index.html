@@ -16,7 +16,7 @@
   <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
-<!-- ===== STATUS PANEL ===== -->
+<!-- STATUS -->
 <div class="instrument-card" style="background:#eef3fb">
   <strong id="status">Status: IDLE</strong>
 </div>
@@ -54,6 +54,18 @@
     <span id="sensitivityVal">1.0</span>
   </div>
 
+  <!-- SPEED CONTROL -->
+  <div class="instrument-card">
+    <h2>Simulation Speed</h2>
+
+    <input id="speedInput" type="range"
+           min="5" max="50" step="5" value="20">
+    <div>
+      Speed: <strong><span id="speedVal">20×</span></strong>
+    </div>
+    <small>Controls how fast chromatographic time advances</small>
+  </div>
+
   <!-- INSTRUMENT CONTROL -->
   <div class="instrument-card">
     <h2>Instrument Control</h2>
@@ -88,7 +100,6 @@ fetch("./hplc.diagram.svg")
 
 <!-- LOGIC -->
 <script src="./samples.js"></script>
-<script src="./hplc.engine.js"></script>
 <script src="./hplc.stable.js"></script>
 
 </body>

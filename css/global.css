@@ -43,6 +43,8 @@ body {
   margin: auto;
 }
 
+/* ===== INSTRUMENT CARD ===== */
+/* Single unified definition — previously duplicated */
 .instrument-card {
   background: white;
   border-radius: 12px;
@@ -51,6 +53,7 @@ body {
   color: inherit;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: 24px;
 }
 
 .instrument-card:hover {
@@ -85,12 +88,64 @@ footer a {
   font-weight: 600;
 }
 
-/* ===== HPLC PAGE ===== */
-.instrument-card {
-  margin-bottom: 24px;
-}
-
+/* ===== CANVAS ===== */
 canvas {
   background: white;
   border-radius: 8px;
+}
+
+/* ===== STATUS BADGE ===== */
+.status-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #e3eaf7;
+  color: #1565c0;
+  transition: background 0.3s, color 0.3s;
+}
+
+.status-badge.running  { background: #e8f5e9; color: #2e7d32; }
+.status-badge.pumping  { background: #fff8e1; color: #f57f17; }
+.status-badge.ready    { background: #e3f2fd; color: #1565c0; }
+.status-badge.complete { background: #ede7f6; color: #4527a0; }
+.status-badge.stopped  { background: #fce4ec; color: #b71c1c; }
+.status-badge.error    { background: #fce4ec; color: #b71c1c; }
+
+/* ===== RANGE INPUTS ===== */
+input[type="range"] {
+  width: 100%;
+  accent-color: #1565c0;
+  cursor: pointer;
+}
+
+/* ===== BUTTONS ===== */
+button {
+  padding: 9px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+  margin-top: 4px;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+button:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+#pumpBtn  { background: #1565c0; color: white; }
+#injectBtn { background: #2e7d32; color: white; }
+
+/* ===== PARAM DISPLAY ===== */
+.param-val {
+  font-weight: 700;
+  color: #1565c0;
+  min-width: 42px;
+  display: inline-block;
+  text-align: right;
 }

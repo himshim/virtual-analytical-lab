@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>HPLC Simulator</title>
+  <title>HPLC Simulator — Virtual Analytical Lab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="../../css/global.css" />
@@ -17,88 +17,92 @@
 </header>
 
 <!-- STATUS -->
-<div class="instrument-card" style="background:#eef3fb">
-  <strong id="status">Status: IDLE</strong>
+<div style="padding: 12px 40px 0;">
+  <span id="status" class="status-badge">IDLE</span>
 </div>
 
 <main class="instrument-grid">
 
-  <!-- DIAGRAM -->
-  <div class="instrument-card">
-    <h2>HPLC Flow Diagram</h2>
-    <div id="diagramContainer">Loading diagram…</div>
+  <!-- FLOW DIAGRAM -->
+  <div class="instrument-card" style="grid-column: 1 / -1;">
+    <h2 style="margin-top:0">HPLC Flow Diagram</h2>
+    <div id="diagramContainer" style="overflow-x:auto;">Loading diagram…</div>
   </div>
 
   <!-- METHOD CONTROLS -->
   <div class="instrument-card">
-    <h2>Method Controls</h2>
+    <h2 style="margin-top:0">Method Parameters</h2>
 
-    <label>Flow rate (mL/min)</label><br>
+    <label>Flow Rate &nbsp;<span class="param-val" id="flowVal">1.0</span> mL/min</label>
     <input id="flowInput" type="range" min="0.5" max="2.5" step="0.1" value="1.0">
-    <span id="flowVal">1.0</span><br><br>
 
-    <label>Mobile phase (%B)</label><br>
+    <br><br>
+
+    <label>Mobile Phase %B &nbsp;<span class="param-val" id="organicVal">40%</span></label>
     <input id="organicInput" type="range" min="10" max="90" step="5" value="40">
-    <span id="organicVal">40%</span><br><br>
 
-    <label>Compound</label><br>
-    <select id="compoundSelect">
+    <br><br>
+
+    <label>Detector Sensitivity &nbsp;<span class="param-val" id="sensitivityVal">1.0</span></label>
+    <input id="sensitivityInput" type="range" min="0.5" max="5" step="0.5" value="1">
+
+    <br><br>
+
+    <label>Sample Compound</label><br>
+    <select id="compoundSelect" style="width:100%;padding:6px;border-radius:6px;border:1px solid #ccc;margin-top:4px">
       <option value="paracetamol">Paracetamol</option>
       <option value="caffeine" selected>Caffeine</option>
       <option value="aspirin">Aspirin</option>
       <option value="ibuprofen">Ibuprofen</option>
-    </select><br><br>
-
-    <label>Detector sensitivity</label><br>
-    <input id="sensitivityInput" type="range" min="0.5" max="5" step="0.5" value="1">
-    <span id="sensitivityVal">1.0</span>
+      <option value="mixture">── Mixture (all four) ──</option>
+    </select>
   </div>
 
-  <!-- SPEED CONTROL -->
+  <!-- INSTRUMENT CONTROL + SPEED -->
   <div class="instrument-card">
-    <h2>Simulation Speed</h2>
+    <h2 style="margin-top:0">Instrument Control</h2>
 
-    <input id="speedInput" type="range"
-           min="5" max="50" step="5" value="20">
-    <div>
-      Speed: <strong><span id="speedVal">20×</span></strong>
-    </div>
-    <small>Controls how fast chromatographic time advances</small>
-  </div>
-
-  <!-- INSTRUMENT CONTROL -->
-  <div class="instrument-card">
-    <h2>Instrument Control</h2>
-    <button id="pumpBtn">Pump START</button>
+    <button id="pumpBtn">▶ Pump START</button>
     <button id="injectBtn" disabled>Inject Sample</button>
-    <p id="rtDisplay">Estimated RT: —</p>
+
+    <p id="rtDisplay" style="margin-top:16px;font-size:0.9rem;color:#555;">Estimated RT: —</p>
+
+    <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
+
+    <label>Simulation Speed &nbsp;<span class="param-val" id="speedVal">20×</span></label>
+    <input id="speedInput" type="range" min="5" max="50" step="5" value="20">
+    <small style="color:#888">Controls how fast chromatographic time advances</small>
   </div>
 
-  <!-- GRAPH -->
-  <div class="instrument-card">
-    <h2>Chromatogram</h2>
-    <canvas id="graphCanvas" height="260"></canvas>
+  <!-- CHROMATOGRAM -->
+  <div class="instrument-card" style="grid-column: 1 / -1;">
+    <h2 style="margin-top:0">Chromatogram</h2>
+    <canvas id="graphCanvas" height="240"></canvas>
   </div>
 
 </main>
 
 <footer>
   <p>
-    Simulator & diagram © Him Shim •
-    <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">
-      GitHub Repository
-    </a>
+    Simulator © Him Shim •
+    <a href="../../index.html">← Back to Lab</a> &nbsp;|&nbsp;
+    <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">GitHub Repository</a>
   </p>
 </footer>
 
-<!-- SVG -->
+<!-- Load SVG diagram inline -->
 <script>
-fetch("./hplc.diagram.svg")
-  .then(r => r.text())
-  .then(svg => document.getElementById("diagramContainer").innerHTML = svg);
+  fetch("./hplc.diagram.svg")
+    .then(r => r.text())
+    .then(svg => {
+      document.getElementById("diagramContainer").innerHTML = svg;
+    })
+    .catch(() => {
+      document.getElementById("diagramContainer").textContent = "Diagram unavailable.";
+    });
 </script>
 
-<!-- LOGIC -->
+<!-- Samples data must be loaded before hplc.stable.js -->
 <script src="./samples.js"></script>
 <script src="./hplc.stable.js"></script>
 

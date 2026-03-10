@@ -22,5 +22,9 @@ const SAMPLES = {
     name: "Ibuprofen",
     hydrophobicity: 0.85,
     height: 0.8
+  },
+  mixture: {
+    name: "Mixture (all four)",
+    components: ["paracetamol", "caffeine", "aspirin", "ibuprofen"]
   }
 };

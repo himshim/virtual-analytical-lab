@@ -1,7 +1,9 @@
 name: Deploy Virtual Analytical Lab to GitHub Pages
 
 on:
-  workflow_dispatch:   # 👈 manual trigger only
+  push:
+    branches: ["main"]   # 👈 Automatically trigger on every push to main
+  workflow_dispatch:     # Still keep manual trigger for testing
 
 permissions:
   contents: read
@@ -26,7 +28,7 @@ jobs:
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .   # deploy entire repo
+          path: .   # Deploy entire repo
 
       - name: Deploy to GitHub Pages
         id: deployment

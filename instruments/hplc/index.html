@@ -16,20 +16,17 @@
   <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
-<!-- STATUS -->
 <div style="padding: 12px 40px 0;">
   <span id="status" class="status-badge">IDLE</span>
 </div>
 
 <main class="instrument-grid">
 
-  <!-- FLOW DIAGRAM -->
   <div class="instrument-card" style="grid-column: 1 / -1;">
     <h2 style="margin-top:0">HPLC Flow Diagram</h2>
     <div id="diagramContainer" style="overflow-x:auto;">Loading diagram…</div>
   </div>
 
-  <!-- METHOD CONTROLS -->
   <div class="instrument-card">
     <h2 style="margin-top:0">Method Parameters</h2>
 
@@ -58,7 +55,6 @@
     </select>
   </div>
 
-  <!-- INSTRUMENT CONTROL + SPEED -->
   <div class="instrument-card">
     <h2 style="margin-top:0">Instrument Control</h2>
 
@@ -74,7 +70,6 @@
     <small style="color:#888">Controls how fast chromatographic time advances</small>
   </div>
 
-  <!-- CHROMATOGRAM -->
   <div class="instrument-card" style="grid-column: 1 / -1;">
     <h2 style="margin-top:0">Chromatogram</h2>
     <canvas id="graphCanvas" height="240"></canvas>
@@ -84,13 +79,12 @@
 
 <footer>
   <p>
-    Simulator © Him Shim •
+    Simulator © Himshim26 •
     <a href="../../index.html">← Back to Lab</a> &nbsp;|&nbsp;
     <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">GitHub Repository</a>
   </p>
 </footer>
 
-<!-- Load SVG diagram inline -->
 <script>
   fetch("./hplc.diagram.svg")
     .then(r => r.text())
@@ -102,9 +96,7 @@
     });
 </script>
 
-<!-- Samples data must be loaded before hplc.stable.js -->
-<script src="./samples.js"></script>
-<script src="./hplc.stable.js"></script>
+<script type="module" src="./hplc.stable.js"></script>
 
 </body>
 </html>

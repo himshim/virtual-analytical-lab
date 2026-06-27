@@ -1,3 +1,6 @@
+import { SAMPLES } from './samples.js';
+import { getDeadTime, getRetentionFactor, getPeakSigma, getBaselineNoise } from './hplc.math.js';
+
 document.addEventListener("DOMContentLoaded", () => {
 
   /* ========= STATES ========= */
@@ -33,10 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function setState(s) {
     state = s;
 
-    // Text
     statusEl.textContent = s;
 
-    // Badge colour class
     const badge = statusEl;
     badge.className = "status-badge";
     const key = s.toLowerCase().replace(/\s+/g, "").replace("forinjection", "");
@@ -55,19 +56,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ========= SLIDER DISPLAY SYNC ========= */
-  // BUG FIX: these listeners were missing — sliders showed stale values
-  flowInput.addEventListener("input", () => {
-    flowVal.textContent = Number(flowInput.value).toFixed(1);
-  });
-
-  organicInput.addEventListener("input", () => {
-    organicVal.textContent = organicInput.value + "%";
-  });
-
-  sensitivityInput.addEventListener("input", () => {
-    sensitivityVal.textContent = Number(sensitivityInput.value).toFixed(1);
-  });
-
+  flowInput.addEventListener("input", () => flowVal.textContent = Number(flowInput.value).toFixed(1));
+  organicInput.addEventListener("input", () => organicVal.textContent = organicInput.value + "%");
+  sensitivityInput.addEventListener("input", () => sensitivityVal.textContent = Number(sensitivityInput.value).toFixed(1));
   speedInput.addEventListener("input", () => {
     timeScale = Number(speedInput.value);
     speedVal.textContent = timeScale + "×";
@@ -94,37 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
         borderColor: "#1565c0",
         borderWidth: 2,
         pointRadius: 0,
-        fill: {
-          target: "origin",
-          above: "rgba(21,101,192,0.07)"
-        }
+        fill: { target: "origin", above: "rgba(21,101,192,0.07)" }
       }]
     },
     options: {
       animation: false,
       parsing: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `AU: ${ctx.parsed.y.toFixed(4)}`
-          }
-        }
-      },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `AU: ${ctx.parsed.y.toFixed(4)}` } } },
       scales: {
-        x: {
-          type: "linear",
-          min: 0,
-          max: T_MAX,
-          title: { display: true, text: "Time (min)", font: { weight: "bold" } },
-          grid: { color: "#f0f0f0" }
-        },
-        y: {
-          min: Y_MIN,
-          max: Y_MAX,
-          title: { display: true, text: "Response (AU)", font: { weight: "bold" } },
-          grid: { color: "#f0f0f0" }
-        }
+        x: { type: "linear", min: 0, max: T_MAX, title: { display: true, text: "Time (min)", font: { weight: "bold" } }, grid: { color: "#f0f0f0" } },
+        y: { min: Y_MIN, max: Y_MAX, title: { display: true, text: "Response (AU)", font: { weight: "bold" } }, grid: { color: "#f0f0f0" } }
       }
     }
   });
@@ -142,86 +112,61 @@ document.addEventListener("DOMContentLoaded", () => {
     rtDisplay.textContent = "Estimated RT: —";
   }
 
-  /* ========= CHEMISTRY ========= */
+  /* ========= CHEMISTRY HOOKUPS ========= */
   function getFlow()        { return Number(flowInput.value); }
   function getOrganic()     { return Number(organicInput.value); }
   function getSensitivity() { return Number(sensitivityInput.value); }
 
-  function elutionStrength(org) {
-    return 0.3 + 0.7 * (org / 100);
+  function calculateTrueRT(kw, S) {
+    const flow = getFlow();
+    const k = getRetentionFactor(kw, S, getOrganic());
+    const t0 = getDeadTime(flow);
+    return t0 * (1 + k);
   }
 
-  function calcRT(hydrophobicity) {
-    return 1 + hydrophobicity / (getFlow() * elutionStrength(getOrganic()));
-  }
-
-  // Returns array of {rt, height, sigma} for selected compound(s)
   function getPeaks() {
     const sel = compoundSelect.value;
-
-    if (sel === "mixture") {
-      return ["paracetamol", "caffeine", "aspirin", "ibuprofen"].map(key => {
-        const comp = SAMPLES[key];
-        const rt   = calcRT(comp.hydrophobicity);
-        return { rt, height: comp.height, sigma: rt * 0.04 };
-      });
-    }
-
-    const comp = SAMPLES[sel];
-    const rt   = calcRT(comp.hydrophobicity);
-    return [{ rt, height: comp.height, sigma: rt * 0.04 }];
+    const flow = getFlow();
+    
+    let keys = sel === "mixture" ? ["paracetamol", "caffeine", "aspirin", "ibuprofen"] : [sel];
+    
+    return keys.map(key => {
+      const comp = SAMPLES[key];
+      const rt   = calculateTrueRT(comp.kw, comp.S);
+      const sigma = getPeakSigma(rt, flow); 
+      return { rt, height: comp.height, sigma };
+    });
   }
 
-  let peaks = null;  // set on inject
-
-  function baselineNoise() {
-    return (Math.random() - 0.5) * 0.03 * getSensitivity();
-  }
+  let peaks = null;
 
   /* ========= SVG DOT ANIMATION ========= */
-  let flowInterval  = null;
-  let sampleInterval = null;
+  let flowInterval = null, sampleInterval = null;
 
   function initDotAnimation() {
     const svgEl = document.querySelector("#diagramContainer svg");
     if (!svgEl) return;
-
-    const flowPath  = svgEl.getElementById("flowPath");
-    const flowDot   = svgEl.getElementById("flowDot");
-    const sampleDot = svgEl.getElementById("sampleDot");
-
+    const flowPath = svgEl.getElementById("flowPath"), flowDot = svgEl.getElementById("flowDot"), sampleDot = svgEl.getElementById("sampleDot");
     if (!flowPath || !flowDot || !sampleDot) return;
-
     const pathLen = flowPath.getTotalLength();
 
     function moveDot(dot, speed, loop, onDone) {
-      let pos = 0;
-      dot.style.opacity = 1;
+      let pos = 0; dot.style.opacity = 1;
       return setInterval(() => {
         pos += speed;
         if (pos > pathLen) {
-          if (loop) {
-            pos = 0;
-          } else {
-            dot.style.opacity = 0;
-            clearInterval(sampleInterval);
-            sampleInterval = null;
-            if (onDone) onDone();
-            return;
-          }
+          if (loop) pos = 0;
+          else { dot.style.opacity = 0; clearInterval(sampleInterval); sampleInterval = null; if (onDone) onDone(); return; }
         }
         const pt = flowPath.getPointAtLength(pos);
-        dot.setAttribute("cx", pt.x);
-        dot.setAttribute("cy", pt.y);
+        dot.setAttribute("cx", pt.x); dot.setAttribute("cy", pt.y);
       }, 30);
     }
 
-    // Start continuous flow dot
     if (flowInterval) clearInterval(flowInterval);
     flowDot.style.opacity = 0;
     flowInterval = moveDot(flowDot, getFlow() * 2.5, true, null);
 
-    // Expose inject animation
     window._injectSampleDot = () => {
       if (sampleInterval) clearInterval(sampleInterval);
       sampleInterval = moveDot(sampleDot, getFlow() * 1.8, false, null);
@@ -233,50 +178,47 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sampleInterval){ clearInterval(sampleInterval); sampleInterval = null; }
     const svgEl = document.querySelector("#diagramContainer svg");
     if (svgEl) {
-      const fd = svgEl.getElementById("flowDot");
-      const sd = svgEl.getElementById("sampleDot");
-      if (fd) fd.style.opacity = 0;
-      if (sd) sd.style.opacity = 0;
+      const fd = svgEl.getElementById("flowDot"), sd = svgEl.getElementById("sampleDot");
+      if (fd) fd.style.opacity = 0; if (sd) sd.style.opacity = 0;
     }
   }
 
   /* ========= MAIN LOOP ========= */
   function tick() {
     t += DT * timeScale;
+    const flow = getFlow();
+    const sens = getSensitivity();
+    
+    // Base physical noise
+    let y = getBaselineNoise(t, sens);
 
-    let y = baselineNoise();
+    // NEW REALISM: Void Volume Spike (Solvent front at t0)
+    const t0 = getDeadTime(flow);
+    const t0Diff = Math.abs(t - t0);
+    if (t > 0.1 && t0Diff < 0.3) {
+       // Quick chaotic dip/spike reflecting injection solvent hitting detector
+       y += (Math.sin(t0Diff * 50) * 0.05 * sens) * Math.exp(-(t0Diff * t0Diff) / 0.01);
+    }
 
+    // Compound Peaks
     if (peaks !== null) {
       peaks.forEach(pk => {
         const diff = t - pk.rt;
         if (Math.abs(diff) < 6 * pk.sigma) {
-          y += pk.height * getSensitivity() *
-               Math.exp(-(diff * diff) / (2 * pk.sigma * pk.sigma));
+          y += pk.height * sens * Math.exp(-(diff * diff) / (2 * pk.sigma * pk.sigma));
           if (state !== STATES.RUNNING) setState(STATES.RUNNING);
         }
       });
     }
 
     addPoint(t, y);
-
-    if (t >= T_MAX) {
-      stop();
-      setState(STATES.COMPLETED);
-    }
+    if (t >= T_MAX) { stop(); setState(STATES.COMPLETED); }
   }
 
   function start() {
-    resetRun();
-    peaks = null;
-    setState(STATES.PUMPING);
-
+    resetRun(); peaks = null; setState(STATES.PUMPING);
     timer = setInterval(tick, 200);
-
-    // Load SVG then start dot animation
-    setTimeout(() => {
-      initDotAnimation();
-      if (state === STATES.PUMPING) setState(STATES.READY);
-    }, 600);
+    setTimeout(() => { initDotAnimation(); if (state === STATES.PUMPING) setState(STATES.READY); }, 600);
   }
 
   function stop() {
@@ -284,28 +226,16 @@ document.addEventListener("DOMContentLoaded", () => {
     stopDotAnimation();
   }
 
-  /* ========= RT SUMMARY ========= */
   function showRTSummary(peakList) {
     if (peakList.length === 1) {
       rtDisplay.textContent = `Estimated RT: ${peakList[0].rt.toFixed(2)} min`;
     } else {
       const names = ["Paracetamol", "Caffeine", "Aspirin", "Ibuprofen"];
-      rtDisplay.innerHTML = peakList
-        .map((pk, i) => `${names[i]}: <b>${pk.rt.toFixed(2)} min</b>`)
-        .join(" &nbsp;|&nbsp; ");
+      rtDisplay.innerHTML = peakList.map((pk, i) => `${names[i]}: <b>${pk.rt.toFixed(2)} min</b>`).join(" &nbsp;|&nbsp; ");
     }
   }
 
-  /* ========= BUTTONS ========= */
-  pumpBtn.onclick = () => {
-    if (timer) {
-      stop();
-      setState(STATES.STOPPED);
-    } else {
-      start();
-    }
-  };
-
+  pumpBtn.onclick = () => { if (timer) { stop(); setState(STATES.STOPPED); } else start(); };
   injectBtn.onclick = () => {
     if (state !== STATES.READY) return;
     peaks = getPeaks();
@@ -313,7 +243,5 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window._injectSampleDot) window._injectSampleDot();
   };
 
-  /* ========= INIT ========= */
   setState(STATES.IDLE);
-
 });

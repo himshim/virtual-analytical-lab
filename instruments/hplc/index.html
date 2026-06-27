@@ -22,7 +22,7 @@
 
 <main class="instrument-grid">
 
-  <div class="instrument-card" style="grid-column: 1 / -1;">
+  <div class="instrument-card span-full">
     <h2 style="margin-top:0">HPLC Flow Diagram</h2>
     <div id="diagramContainer" style="overflow-x:auto;">Loading diagram…</div>
   </div>
@@ -58,7 +58,7 @@
   <div class="instrument-card">
     <h2 style="margin-top:0">Instrument Control</h2>
 
-    <button id="pumpBtn">▶ Pump START</button>
+    <button id="pumpBtn" disabled>▶ Pump START</button>
     <button id="injectBtn" disabled>Inject Sample</button>
 
     <p id="rtDisplay" style="margin-top:16px;font-size:0.9rem;color:#555;">Estimated RT: —</p>
@@ -70,7 +70,7 @@
     <small style="color:#888">Controls how fast chromatographic time advances</small>
   </div>
 
-  <div class="instrument-card" style="grid-column: 1 / -1;">
+  <div class="instrument-card span-full">
     <h2 style="margin-top:0">Chromatogram</h2>
     <canvas id="graphCanvas" height="240"></canvas>
   </div>
@@ -79,22 +79,11 @@
 
 <footer>
   <p>
-    Simulator © Himshim26 •
+    Simulator © Him Shim •
     <a href="../../index.html">← Back to Lab</a> &nbsp;|&nbsp;
     <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">GitHub Repository</a>
   </p>
 </footer>
-
-<script>
-  fetch("./hplc.diagram.svg")
-    .then(r => r.text())
-    .then(svg => {
-      document.getElementById("diagramContainer").innerHTML = svg;
-    })
-    .catch(() => {
-      document.getElementById("diagramContainer").textContent = "Diagram unavailable.";
-    });
-</script>
 
 <script type="module" src="./hplc.stable.js"></script>
 

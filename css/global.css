@@ -50,8 +50,6 @@ body {
     grid-template-columns: 1fr 1fr; 
   }
   
-  /* Make diagrams span full width if we explicitly want them to, 
-     but allow controls to sit side-by-side */
   .span-full {
     grid-column: 1 / -1;
   }
@@ -105,10 +103,10 @@ footer a {
 canvas {
   background: white;
   border-radius: 8px;
-  width: 100% !important; /* Forces Chart.js to respect container width */
+  width: 100% !important; 
 }
 
-/* ===== STATUS BADGE ===== */
+/* ===== STATUS BADGE & WARNINGS ===== */
 .status-badge {
   display: inline-block;
   padding: 4px 14px;
@@ -127,7 +125,37 @@ canvas {
 .status-badge.ready    { background: #e3f2fd; color: #1565c0; }
 .status-badge.complete { background: #ede7f6; color: #4527a0; }
 .status-badge.stopped  { background: #fce4ec; color: #b71c1c; }
-.status-badge.error    { background: #fce4ec; color: #b71c1c; }
+.status-badge.error    { background: #b71c1c; color: white; } /* High contrast for errors */
+
+/* NEW: Hardware Alarm Pulse Animation */
+@keyframes pulse-alarm {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); box-shadow: 0 0 10px rgba(183, 28, 28, 0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.pulse-warning {
+  animation: pulse-alarm 1s infinite;
+}
+
+/* ===== HARDWARE GAUGE (METER) ===== */
+meter {
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e0e0e0;
+}
+meter::-webkit-meter-bar {
+  background: #e0e0e0;
+  border: none;
+}
+meter::-webkit-meter-optimum-value {
+  background: #2e7d32; /* Green for safe pressure */
+}
+meter::-webkit-meter-suboptimum-value {
+  background: #f57f17; /* Yellow for high pressure */
+}
+meter::-webkit-meter-even-less-good-value {
+  background: #b71c1c; /* Red for overpressure */
+}
 
 /* ===== RANGE INPUTS ===== */
 input[type="range"] {

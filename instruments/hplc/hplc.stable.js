@@ -1,7 +1,6 @@
 import { SAMPLES } from './samples.js';
-import { getDeadTime, getRetentionFactor, getPeakSigma, getBaselineNoise } from './hplc.math.js';
+import { getDeadTime, getRetentionFactor, getPeakSigma, getBaselineNoise, getSystemPressure } from './hplc.math.js';
 
-// NEW: Decoupled SVG Loader
 async function injectDiagramSVG() {
   const container = document.getElementById("diagramContainer");
   try {
@@ -14,7 +13,6 @@ async function injectDiagramSVG() {
   }
 }
 
-// Notice the callback is now async
 document.addEventListener("DOMContentLoaded", async () => {
 
   /* ========= STATES ========= */
@@ -45,6 +43,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sensitivityVal  = document.getElementById("sensitivityVal");
   const speedInput      = document.getElementById("speedInput");
   const speedVal        = document.getElementById("speedVal");
+  
+  // NEW DOM Elements
+  const pressureMeter   = document.getElementById("pressureMeter");
+  const pressureVal     = document.getElementById("pressureVal");
+  const satWarning      = document.getElementById("satWarning");
+  const pressureWarning = document.getElementById("pressureWarning");
 
   /* ========= STATE HANDLER ========= */
   function setState(s) {
@@ -54,10 +58,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const badge = statusEl;
     badge.className = "status-badge";
     
-    // Normalize string for CSS class mapping
     let key = s.toLowerCase().replace(/[^a-z]/g, "");
     if (key.includes("ready")) key = "ready";
-    if (key.includes("initializing")) key = "pumping"; // Use orange/loading color
+    if (key.includes("initializing")) key = "pumping"; 
     badge.classList.add(key);
 
     const lock = (s !== STATES.READY && s !== STATES.STOPPED && s !== STATES.COMPLETED);
@@ -67,15 +70,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     sensitivityInput.disabled = lock;
 
     injectBtn.disabled = s !== STATES.READY;
-    pumpBtn.disabled   = s === STATES.IDLE; // Lock pump while SVG is fetching
+    pumpBtn.disabled   = s === STATES.IDLE; 
     pumpBtn.textContent = (s === STATES.READY || s === STATES.STOPPED || s === STATES.COMPLETED)
       ? "▶ Pump START"
       : "⏹ Pump STOP";
+      
+    // Clear warnings when restarting or preparing
+    if (s === STATES.READY || s === STATES.IDLE || s === STATES.PUMPING) {
+      satWarning.style.display = "none";
+      pressureWarning.style.display = "none";
+    }
+  }
+
+  /* ========= HARDWARE PHYSICS HANDLER ========= */
+  function updatePressure() {
+    const pressure = getSystemPressure(getFlow(), getOrganic());
+    pressureMeter.value = pressure;
+    pressureVal.textContent = Math.round(pressure) + " bar";
+    
+    // UI Feedback styling for the text
+    if (pressure > 350) pressureVal.style.color = "#b71c1c";
+    else if (pressure > 250) pressureVal.style.color = "#f57f17";
+    else pressureVal.style.color = "#2e7d32";
+    
+    return pressure;
   }
 
   /* ========= SLIDER DISPLAY SYNC ========= */
-  flowInput.addEventListener("input", () => flowVal.textContent = Number(flowInput.value).toFixed(1));
-  organicInput.addEventListener("input", () => organicVal.textContent = organicInput.value + "%");
+  flowInput.addEventListener("input", () => {
+    flowVal.textContent = Number(flowInput.value).toFixed(1);
+    updatePressure();
+  });
+  
+  organicInput.addEventListener("input", () => {
+    organicVal.textContent = organicInput.value + "%";
+    updatePressure();
+  });
+  
   sensitivityInput.addEventListener("input", () => sensitivityVal.textContent = Number(sensitivityInput.value).toFixed(1));
   speedInput.addEventListener("input", () => {
     timeScale = Number(speedInput.value);
@@ -91,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ========= DETECTOR RANGE ========= */
   const Y_MIN = -0.2;
-  const Y_MAX = 2.2;
+  const Y_MAX = 2.6; // Bumped up slightly to see the flat-topping at 2.5
 
   /* ========= CHART ========= */
   const chart = new Chart(canvas.getContext("2d"), {
@@ -145,7 +176,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   function getPeaks() {
     const sel = compoundSelect.value;
     const flow = getFlow();
-    
     let keys = sel === "mixture" ? ["paracetamol", "caffeine", "aspirin", "ibuprofen"] : [sel];
     
     return keys.map(key => {
@@ -207,21 +237,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ========= MAIN LOOP ========= */
   function tick() {
+    // 1. HARDWARE SAFETY CHECK
+    const currentPressure = updatePressure();
+    if (currentPressure > 400) {
+      stop();
+      setState(STATES.STOPPED);
+      pressureWarning.style.display = "inline-block";
+      pressureWarning.classList.add("pulse-warning");
+      return; // Abort simulation tick
+    }
+
     t += DT * timeScale;
     const flow = getFlow();
     const sens = getSensitivity();
     
-    // Base physical noise
+    // 2. BASELINE & VOID VOLUME
     let y = getBaselineNoise(t, sens);
-
-    // Void Volume Spike (Solvent front at t0)
     const t0 = getDeadTime(flow);
     const t0Diff = Math.abs(t - t0);
     if (t > 0.1 && t0Diff < 0.3) {
        y += (Math.sin(t0Diff * 50) * 0.05 * sens) * Math.exp(-(t0Diff * t0Diff) / 0.01);
     }
 
-    // Compound Peaks
+    // 3. COMPOUND PEAKS
     if (peaks !== null) {
       peaks.forEach(pk => {
         const diff = t - pk.rt;
@@ -232,6 +270,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
+    // 4. DETECTOR SATURATION CLIPPING
+    let isSaturated = false;
+    const DETECTOR_LIMIT = 2.5;
+    if (y > DETECTOR_LIMIT) {
+      y = DETECTOR_LIMIT;
+      isSaturated = true;
+    }
+    
+    // Toggle warning UI without overriding other states aggressively
+    if (isSaturated && state === STATES.RUNNING) {
+      satWarning.style.display = "inline-block";
+      satWarning.classList.add("pulse-warning");
+    } else if (!isSaturated && satWarning.style.display !== "none") {
+      satWarning.style.display = "none";
+      satWarning.classList.remove("pulse-warning");
+    }
+
     addPoint(t, y);
     if (t >= T_MAX) { stop(); setState(STATES.COMPLETED); }
   }
@@ -239,6 +294,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   function start() {
     resetRun(); 
     peaks = null; 
+    
+    // Validate pressure before starting
+    if (updatePressure() > 400) {
+      pressureWarning.style.display = "inline-block";
+      pressureWarning.classList.add("pulse-warning");
+      return; 
+    }
+    
     setState(STATES.PUMPING);
     timer = setInterval(tick, 200);
     initDotAnimation();
@@ -269,10 +332,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // INITIALIZATION SEQUENCE
   setState(STATES.IDLE);
+  updatePressure(); // Set initial gauge state
   
-  // Wait for the SVG to safely load before allowing instrument interaction
   await injectDiagramSVG();
-  
-  // Instrument is now fully booted up
   setState(STATES.READY);
 });

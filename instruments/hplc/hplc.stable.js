@@ -1,13 +1,27 @@
 import { SAMPLES } from './samples.js';
 import { getDeadTime, getRetentionFactor, getPeakSigma, getBaselineNoise } from './hplc.math.js';
 
-document.addEventListener("DOMContentLoaded", () => {
+// NEW: Decoupled SVG Loader
+async function injectDiagramSVG() {
+  const container = document.getElementById("diagramContainer");
+  try {
+    const response = await fetch("./hplc.diagram.svg");
+    if (!response.ok) throw new Error("Network response was not ok");
+    container.innerHTML = await response.text();
+  } catch (error) {
+    container.textContent = "Diagram unavailable. Check connection or file path.";
+    console.error("SVG Load Error:", error);
+  }
+}
+
+// Notice the callback is now async
+document.addEventListener("DOMContentLoaded", async () => {
 
   /* ========= STATES ========= */
   const STATES = {
-    IDLE:      "IDLE",
-    PUMPING:   "PUMPING",
+    IDLE:      "INITIALIZING...",
     READY:     "READY FOR INJECTION",
+    PUMPING:   "PUMPING",
     RUNNING:   "RUNNING",
     COMPLETED: "COMPLETED",
     STOPPED:   "STOPPED"
@@ -37,20 +51,24 @@ document.addEventListener("DOMContentLoaded", () => {
     state = s;
 
     statusEl.textContent = s;
-
     const badge = statusEl;
     badge.className = "status-badge";
-    const key = s.toLowerCase().replace(/\s+/g, "").replace("forinjection", "");
+    
+    // Normalize string for CSS class mapping
+    let key = s.toLowerCase().replace(/[^a-z]/g, "");
+    if (key.includes("ready")) key = "ready";
+    if (key.includes("initializing")) key = "pumping"; // Use orange/loading color
     badge.classList.add(key);
 
-    const lock = s !== STATES.IDLE;
+    const lock = (s !== STATES.READY && s !== STATES.STOPPED && s !== STATES.COMPLETED);
     flowInput.disabled       = lock;
     organicInput.disabled    = lock;
     compoundSelect.disabled  = lock;
     sensitivityInput.disabled = lock;
 
     injectBtn.disabled = s !== STATES.READY;
-    pumpBtn.textContent = (s === STATES.IDLE || s === STATES.STOPPED || s === STATES.COMPLETED)
+    pumpBtn.disabled   = s === STATES.IDLE; // Lock pump while SVG is fetching
+    pumpBtn.textContent = (s === STATES.READY || s === STATES.STOPPED || s === STATES.COMPLETED)
       ? "▶ Pump START"
       : "⏹ Pump STOP";
   }
@@ -146,7 +164,11 @@ document.addEventListener("DOMContentLoaded", () => {
   function initDotAnimation() {
     const svgEl = document.querySelector("#diagramContainer svg");
     if (!svgEl) return;
-    const flowPath = svgEl.getElementById("flowPath"), flowDot = svgEl.getElementById("flowDot"), sampleDot = svgEl.getElementById("sampleDot");
+    
+    const flowPath = svgEl.getElementById("flowPath"), 
+          flowDot = svgEl.getElementById("flowDot"), 
+          sampleDot = svgEl.getElementById("sampleDot");
+          
     if (!flowPath || !flowDot || !sampleDot) return;
     const pathLen = flowPath.getTotalLength();
 
@@ -192,11 +214,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Base physical noise
     let y = getBaselineNoise(t, sens);
 
-    // NEW REALISM: Void Volume Spike (Solvent front at t0)
+    // Void Volume Spike (Solvent front at t0)
     const t0 = getDeadTime(flow);
     const t0Diff = Math.abs(t - t0);
     if (t > 0.1 && t0Diff < 0.3) {
-       // Quick chaotic dip/spike reflecting injection solvent hitting detector
        y += (Math.sin(t0Diff * 50) * 0.05 * sens) * Math.exp(-(t0Diff * t0Diff) / 0.01);
     }
 
@@ -216,9 +237,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function start() {
-    resetRun(); peaks = null; setState(STATES.PUMPING);
+    resetRun(); 
+    peaks = null; 
+    setState(STATES.PUMPING);
     timer = setInterval(tick, 200);
-    setTimeout(() => { initDotAnimation(); if (state === STATES.PUMPING) setState(STATES.READY); }, 600);
+    initDotAnimation();
+    setState(STATES.READY);
   }
 
   function stop() {
@@ -243,5 +267,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window._injectSampleDot) window._injectSampleDot();
   };
 
+  // INITIALIZATION SEQUENCE
   setState(STATES.IDLE);
+  
+  // Wait for the SVG to safely load before allowing instrument interaction
+  await injectDiagramSVG();
+  
+  // Instrument is now fully booted up
+  setState(STATES.READY);
 });

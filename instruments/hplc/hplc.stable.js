@@ -17,15 +17,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ========= STATES ========= */
   const STATES = {
-    IDLE:      "INITIALIZING...",
+    BOOTING:   "INITIALIZING...",
+    IDLE:      "IDLE",
     READY:     "READY FOR INJECTION",
-    PUMPING:   "PUMPING",
     RUNNING:   "RUNNING",
     COMPLETED: "COMPLETED",
     STOPPED:   "STOPPED"
   };
 
-  let state = STATES.IDLE;
+  let state = STATES.BOOTING;
 
   /* ========= DOM ========= */
   const statusEl        = document.getElementById("status");
@@ -44,13 +44,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const speedInput      = document.getElementById("speedInput");
   const speedVal        = document.getElementById("speedVal");
   
-  // NEW DOM Elements
   const pressureMeter   = document.getElementById("pressureMeter");
   const pressureVal     = document.getElementById("pressureVal");
   const satWarning      = document.getElementById("satWarning");
   const pressureWarning = document.getElementById("pressureWarning");
 
-  /* ========= STATE HANDLER ========= */
+  /* ========= FIXED STATE HANDLER ========= */
   function setState(s) {
     state = s;
 
@@ -63,20 +62,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (key.includes("initializing")) key = "pumping"; 
     badge.classList.add(key);
 
-    const lock = (s !== STATES.READY && s !== STATES.STOPPED && s !== STATES.COMPLETED);
-    flowInput.disabled       = lock;
-    organicInput.disabled    = lock;
-    compoundSelect.disabled  = lock;
-    sensitivityInput.disabled = lock;
+    // Inputs unlocked ONLY when pump is OFF 
+    const isPumpOff = (s === STATES.IDLE || s === STATES.STOPPED || s === STATES.COMPLETED);
+    
+    flowInput.disabled       = !isPumpOff;
+    organicInput.disabled    = !isPumpOff;
+    compoundSelect.disabled  = !isPumpOff;
+    sensitivityInput.disabled = !isPumpOff;
 
+    // Inject is only possible when pump is running and waiting
     injectBtn.disabled = s !== STATES.READY;
-    pumpBtn.disabled   = s === STATES.IDLE; 
-    pumpBtn.textContent = (s === STATES.READY || s === STATES.STOPPED || s === STATES.COMPLETED)
-      ? "▶ Pump START"
-      : "⏹ Pump STOP";
+    
+    // Pump button is disabled ONLY during booting
+    pumpBtn.disabled = (s === STATES.BOOTING); 
+    
+    // Set proper button text
+    pumpBtn.textContent = isPumpOff ? "▶ Pump START" : "⏹ Pump STOP";
       
     // Clear warnings when restarting or preparing
-    if (s === STATES.READY || s === STATES.IDLE || s === STATES.PUMPING) {
+    if (s === STATES.READY || s === STATES.IDLE) {
       satWarning.style.display = "none";
       pressureWarning.style.display = "none";
     }
@@ -88,7 +92,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     pressureMeter.value = pressure;
     pressureVal.textContent = Math.round(pressure) + " bar";
     
-    // UI Feedback styling for the text
     if (pressure > 350) pressureVal.style.color = "#b71c1c";
     else if (pressure > 250) pressureVal.style.color = "#f57f17";
     else pressureVal.style.color = "#2e7d32";
@@ -120,9 +123,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const T_MAX   = 10;
   let timer     = null;
 
-  /* ========= DETECTOR RANGE ========= */
   const Y_MIN = -0.2;
-  const Y_MAX = 2.6; // Bumped up slightly to see the flat-topping at 2.5
+  const Y_MAX = 2.6; 
 
   /* ========= CHART ========= */
   const chart = new Chart(canvas.getContext("2d"), {
@@ -244,14 +246,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       setState(STATES.STOPPED);
       pressureWarning.style.display = "inline-block";
       pressureWarning.classList.add("pulse-warning");
-      return; // Abort simulation tick
+      return; 
     }
 
     t += DT * timeScale;
     const flow = getFlow();
     const sens = getSensitivity();
     
-    // 2. BASELINE & VOID VOLUME
     let y = getBaselineNoise(t, sens);
     const t0 = getDeadTime(flow);
     const t0Diff = Math.abs(t - t0);
@@ -259,7 +260,6 @@ document.addEventListener("DOMContentLoaded", async () => {
        y += (Math.sin(t0Diff * 50) * 0.05 * sens) * Math.exp(-(t0Diff * t0Diff) / 0.01);
     }
 
-    // 3. COMPOUND PEAKS
     if (peaks !== null) {
       peaks.forEach(pk => {
         const diff = t - pk.rt;
@@ -278,7 +278,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       isSaturated = true;
     }
     
-    // Toggle warning UI without overriding other states aggressively
     if (isSaturated && state === STATES.RUNNING) {
       satWarning.style.display = "inline-block";
       satWarning.classList.add("pulse-warning");
@@ -302,7 +301,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return; 
     }
     
-    setState(STATES.PUMPING);
     timer = setInterval(tick, 200);
     initDotAnimation();
     setState(STATES.READY);
@@ -331,9 +329,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // INITIALIZATION SEQUENCE
-  setState(STATES.IDLE);
-  updatePressure(); // Set initial gauge state
+  setState(STATES.BOOTING); // Start locked while fetching graphics
+  updatePressure(); 
   
   await injectDiagramSVG();
-  setState(STATES.READY);
+  setState(STATES.IDLE); // Once graphics load, transition to IDLE (pump off, inputs unlocked)
 });

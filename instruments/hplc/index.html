@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>HPLC Simulator — Virtual Analytical Lab</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="../../css/global.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -16,20 +15,20 @@
   <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
-<div style="padding: 12px 40px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-  <span id="status" class="status-badge">IDLE</span>
-  <span id="satWarning" class="status-badge error" style="display: none;">⚠️ DETECTOR SATURATED</span>
-  <span id="pressureWarning" class="status-badge error" style="display: none;">🚨 OVERPRESSURE SHUTDOWN</span>
-</div>
-
 <main class="instrument-grid">
 
-  <div class="instrument-card span-full">
-    <h2 style="margin-top:0">HPLC Flow Diagram</h2>
+  <div class="area-status" style="padding: 12px 40px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <span id="status" class="status-badge">IDLE</span>
+    <span id="satWarning" class="status-badge error" style="display: none;">⚠️ DETECTOR SATURATED</span>
+    <span id="pressureWarning" class="status-badge error" style="display: none;">🚨 OVERPRESSURE SHUTDOWN</span>
+  </div>
+
+  <div class="instrument-card area-diagram">
+    <h2 style="margin-top:0">HPLC Flow Schematic</h2>
     <div id="diagramContainer" style="overflow-x:auto;">Loading diagram…</div>
   </div>
 
-  <div class="instrument-card">
+  <div class="instrument-card area-controls">
     <h2 style="margin-top:0">Method Parameters</h2>
 
     <label for="flowInput">Flow Rate &nbsp;<span class="param-val" id="flowVal">1.0</span> mL/min</label>
@@ -55,45 +54,29 @@
       <option value="ibuprofen">Ibuprofen</option>
       <option value="mixture">── Mixture (all four) ──</option>
     </select>
-  </div>
 
-  <div class="instrument-card">
-    <h2 style="margin-top:0">Instrument Control</h2>
+    <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
 
-    <div style="margin-bottom: 16px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0;">
-      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; font-weight: 600;">
+    <div style="margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600;">
         <span>System Pressure</span>
         <span id="pressureVal">0 bar</span>
       </div>
-      <meter id="pressureMeter" min="0" max="400" low="250" high="350" optimum="150" value="0" style="width: 100%; height: 18px;"></meter>
+      <meter id="pressureMeter" min="0" max="400" low="250" high="350" optimum="150" value="0"></meter>
     </div>
 
     <button id="pumpBtn" disabled>▶ Pump START</button>
     <button id="injectBtn" disabled>Inject Sample</button>
 
     <p id="rtDisplay" style="margin-top:16px;font-size:0.9rem;color:#555;">Estimated RT: —</p>
-
-    <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
-
-    <label for="speedInput">Simulation Speed &nbsp;<span class="param-val" id="speedVal">20×</span></label>
-    <input id="speedInput" type="range" min="5" max="50" step="5" value="20">
-    <small style="color:#888">Controls how fast chromatographic time advances</small>
   </div>
 
-  <div class="instrument-card span-full">
+  <div class="instrument-card area-graph">
     <h2 style="margin-top:0">Chromatogram</h2>
-    <canvas id="graphCanvas" height="240"></canvas>
+    <canvas id="graphCanvas" height="200"></canvas>
   </div>
 
 </main>
-
-<footer>
-  <p>
-    Simulator © Him Shim •
-    <a href="../../index.html">← Back to Lab</a> &nbsp;|&nbsp;
-    <a href="https://github.com/himshim/virtual-analytical-lab" target="_blank">GitHub Repository</a>
-  </p>
-</footer>
 
 <script type="module" src="./hplc.stable.js"></script>
 

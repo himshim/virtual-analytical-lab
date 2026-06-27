@@ -16,8 +16,10 @@
   <p>Interactive reversed-phase HPLC virtual instrument</p>
 </header>
 
-<div style="padding: 12px 40px 0;">
+<div style="padding: 12px 40px 0; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
   <span id="status" class="status-badge">IDLE</span>
+  <span id="satWarning" class="status-badge error" style="display: none;">⚠️ DETECTOR SATURATED</span>
+  <span id="pressureWarning" class="status-badge error" style="display: none;">🚨 OVERPRESSURE SHUTDOWN</span>
 </div>
 
 <main class="instrument-grid">
@@ -30,22 +32,22 @@
   <div class="instrument-card">
     <h2 style="margin-top:0">Method Parameters</h2>
 
-    <label>Flow Rate &nbsp;<span class="param-val" id="flowVal">1.0</span> mL/min</label>
-    <input id="flowInput" type="range" min="0.5" max="2.5" step="0.1" value="1.0">
+    <label for="flowInput">Flow Rate &nbsp;<span class="param-val" id="flowVal">1.0</span> mL/min</label>
+    <input id="flowInput" type="range" min="0.5" max="5.0" step="0.1" value="1.0">
 
     <br><br>
 
-    <label>Mobile Phase %B &nbsp;<span class="param-val" id="organicVal">40%</span></label>
+    <label for="organicInput">Mobile Phase %B &nbsp;<span class="param-val" id="organicVal">40%</span></label>
     <input id="organicInput" type="range" min="10" max="90" step="5" value="40">
 
     <br><br>
 
-    <label>Detector Sensitivity &nbsp;<span class="param-val" id="sensitivityVal">1.0</span></label>
+    <label for="sensitivityInput">Detector Sensitivity &nbsp;<span class="param-val" id="sensitivityVal">1.0</span></label>
     <input id="sensitivityInput" type="range" min="0.5" max="5" step="0.5" value="1">
 
     <br><br>
 
-    <label>Sample Compound</label><br>
+    <label for="compoundSelect">Sample Compound</label><br>
     <select id="compoundSelect" style="width:100%;padding:6px;border-radius:6px;border:1px solid #ccc;margin-top:4px">
       <option value="paracetamol">Paracetamol</option>
       <option value="caffeine" selected>Caffeine</option>
@@ -58,6 +60,14 @@
   <div class="instrument-card">
     <h2 style="margin-top:0">Instrument Control</h2>
 
+    <div style="margin-bottom: 16px; background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 4px; font-weight: 600;">
+        <span>System Pressure</span>
+        <span id="pressureVal">0 bar</span>
+      </div>
+      <meter id="pressureMeter" min="0" max="400" low="250" high="350" optimum="150" value="0" style="width: 100%; height: 18px;"></meter>
+    </div>
+
     <button id="pumpBtn" disabled>▶ Pump START</button>
     <button id="injectBtn" disabled>Inject Sample</button>
 
@@ -65,7 +75,7 @@
 
     <hr style="border:none;border-top:1px solid #eee;margin:16px 0">
 
-    <label>Simulation Speed &nbsp;<span class="param-val" id="speedVal">20×</span></label>
+    <label for="speedInput">Simulation Speed &nbsp;<span class="param-val" id="speedVal">20×</span></label>
     <input id="speedInput" type="range" min="5" max="50" step="5" value="20">
     <small style="color:#888">Controls how fast chromatographic time advances</small>
   </div>

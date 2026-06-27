@@ -34,6 +34,7 @@ body {
   opacity: 0.95;
 }
 
+/* Base grid for the landing page */
 .instrument-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -43,8 +44,20 @@ body {
   margin: auto;
 }
 
+/* Advanced responsive grid for the actual simulator dashboards */
+@media (min-width: 900px) {
+  .instrument-grid {
+    grid-template-columns: 1fr 1fr; 
+  }
+  
+  /* Make diagrams span full width if we explicitly want them to, 
+     but allow controls to sit side-by-side */
+  .span-full {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ===== INSTRUMENT CARD ===== */
-/* Single unified definition — previously duplicated */
 .instrument-card {
   background: white;
   border-radius: 12px;
@@ -92,6 +105,7 @@ footer a {
 canvas {
   background: white;
   border-radius: 8px;
+  width: 100% !important; /* Forces Chart.js to respect container width */
 }
 
 /* ===== STATUS BADGE ===== */

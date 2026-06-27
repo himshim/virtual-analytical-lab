@@ -1,193 +1,70 @@
-/* ===== GLOBAL ===== */
-* {
-  box-sizing: border-box;
+/* ===== GLOBAL & RESET ===== */
+* { box-sizing: border-box; }
+body { 
+  margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #222;
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  background: #f4f6f8;
-  color: #222;
-}
-
-/* ===== LANDING ===== */
-.landing {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-.hero {
-  background: linear-gradient(135deg, #1565c0, #1e88e5);
-  color: white;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.hero h1 {
-  margin-bottom: 10px;
-  font-size: 2.6rem;
-}
-
-.hero p {
-  font-size: 1.2rem;
-  opacity: 0.95;
-}
-
-/* Base grid for the landing page */
+/* ===== RESPONSIVE GRID AREAS ===== */
 .instrument-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  padding: 40px;
-  max-width: 1100px;
+  padding: 20px;
+  gap: 20px;
+  max-width: 1200px;
   margin: auto;
+  /* Mobile: Single Column */
+  grid-template-areas: 
+    "status"
+    "diagram"
+    "controls"
+    "graph";
 }
 
-/* Advanced responsive grid for the actual simulator dashboards */
 @media (min-width: 900px) {
   .instrument-grid {
-    grid-template-columns: 1fr 1fr; 
-  }
-  
-  .span-full {
-    grid-column: 1 / -1;
+    /* Desktop: Sophisticated Layout */
+    grid-template-columns: 1fr 350px;
+    grid-template-areas: 
+      "status status"
+      "diagram controls"
+      "graph graph";
   }
 }
+
+.area-status   { grid-area: status; }
+.area-diagram  { grid-area: diagram; }
+.area-controls { grid-area: controls; }
+.area-graph    { grid-area: graph; }
 
 /* ===== INSTRUMENT CARD ===== */
 .instrument-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  text-decoration: none;
-  color: inherit;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  margin-bottom: 24px;
+  background: white; border-radius: 12px; padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.instrument-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+/* ===== STATUS & WARNINGS ===== */
+.status-badge { 
+  display: inline-block; padding: 6px 16px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+  background: #e3eaf7; color: #1565c0;
 }
+.status-badge.error { background: #b71c1c; color: white; }
 
-.instrument-card span {
-  display: inline-block;
-  margin-top: 16px;
-  color: #1565c0;
-  font-weight: 600;
-}
-
-.instrument-card.disabled {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* ===== FOOTER ===== */
-footer {
-  margin-top: auto;
-  padding: 20px;
-  text-align: center;
-  font-size: 0.9rem;
-  background: #eaecef;
-}
-
-footer a {
-  color: #1565c0;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-/* ===== CANVAS ===== */
-canvas {
-  background: white;
-  border-radius: 8px;
-  width: 100% !important; 
-}
-
-/* ===== STATUS BADGE & WARNINGS ===== */
-.status-badge {
-  display: inline-block;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  background: #e3eaf7;
-  color: #1565c0;
-  transition: background 0.3s, color 0.3s;
-}
-
-.status-badge.running  { background: #e8f5e9; color: #2e7d32; }
-.status-badge.pumping  { background: #fff8e1; color: #f57f17; }
-.status-badge.ready    { background: #e3f2fd; color: #1565c0; }
-.status-badge.complete { background: #ede7f6; color: #4527a0; }
-.status-badge.stopped  { background: #fce4ec; color: #b71c1c; }
-.status-badge.error    { background: #b71c1c; color: white; } /* High contrast for errors */
-
-/* NEW: Hardware Alarm Pulse Animation */
 @keyframes pulse-alarm {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.05); box-shadow: 0 0 10px rgba(183, 28, 28, 0.5); }
-  100% { opacity: 1; transform: scale(1); }
+  0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; }
 }
-.pulse-warning {
-  animation: pulse-alarm 1s infinite;
-}
+.pulse-warning { animation: pulse-alarm 1s infinite; }
 
-/* ===== HARDWARE GAUGE (METER) ===== */
-meter {
-  border-radius: 4px;
-  overflow: hidden;
-  background: #e0e0e0;
-}
-meter::-webkit-meter-bar {
-  background: #e0e0e0;
-  border: none;
-}
-meter::-webkit-meter-optimum-value {
-  background: #2e7d32; /* Green for safe pressure */
-}
-meter::-webkit-meter-suboptimum-value {
-  background: #f57f17; /* Yellow for high pressure */
-}
-meter::-webkit-meter-even-less-good-value {
-  background: #b71c1c; /* Red for overpressure */
-}
+/* ===== HARDWARE GAUGE ===== */
+meter { width: 100%; height: 20px; border-radius: 4px; }
+meter::-webkit-meter-optimum-value { background: #2e7d32; }
+meter::-webkit-meter-suboptimum-value { background: #f57f17; }
+meter::-webkit-meter-even-less-good-value { background: #b71c1c; }
 
-/* ===== RANGE INPUTS ===== */
-input[type="range"] {
-  width: 100%;
-  accent-color: #1565c0;
-  cursor: pointer;
+/* ===== FORM ELEMENTS ===== */
+input[type="range"] { width: 100%; accent-color: #1565c0; cursor: pointer; }
+button { 
+  width: 100%; padding: 12px; border: none; border-radius: 8px;
+  font-weight: 600; cursor: pointer; margin-bottom: 8px;
 }
-
-/* ===== BUTTONS ===== */
-button {
-  padding: 9px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 8px;
-  margin-top: 4px;
-  transition: opacity 0.2s, transform 0.1s;
-}
-
-button:active { transform: scale(0.97); }
-button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-#pumpBtn  { background: #1565c0; color: white; }
+#pumpBtn { background: #1565c0; color: white; }
 #injectBtn { background: #2e7d32; color: white; }
-
-/* ===== PARAM DISPLAY ===== */
-.param-val {
-  font-weight: 700;
-  color: #1565c0;
-  min-width: 42px;
-  display: inline-block;
-  text-align: right;
-}

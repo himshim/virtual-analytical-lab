@@ -1,60 +1,107 @@
-# Virtual Analytical Laboratory — HPLC Simulator v1.1.3
+# Virtual Analytical Laboratory (VAL)
 
-A modern, web-based, scientifically grounded analytical instrument simulator designed specifically for pharmacy and analytical chemistry students. Built with Vanilla JS, Chart.js, HTML5 canvas, and Playwright automated visual quality gates.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Production: Live](https://img.shields.io/badge/Production-Live-success)](https://virtual-analytical-lab.vercel.app/)
+[![Maintained by @himshim26](https://img.shields.io/badge/Maintained%20by-@himshim26-38bdf8)](https://himshim.github.io/)
+
+A modern, browser-native, scientifically grounded analytical instrument simulation platform designed specifically for pharmacy, chemistry, and life sciences students and educators. 
+
+Built with **pure Vanilla JavaScript ES modules**, HTML5 Canvas, SVG ray-tracing, and zero framework bloat. 100% client-side execution with offline resilience and zero backend server load.
+
+🌐 **Live Production:** [virtual-analytical-lab.vercel.app](https://virtual-analytical-lab.vercel.app/)  
+👨‍💻 **Maintainer:** [Himanshu Sharma (@himshim26)](https://himshim.github.io/)
 
 ---
 
-## 🎯 Key Educational Features
+## 🔬 Four Complete Instrument Workstations
 
-1. **Pedagogical Learning Loop**:
+| Workstation | Method & Physics Models | Compendial Reference | Live Route |
+| :--- | :--- | :--- | :--- |
+| **🧪 HPLC** | Reversed-Phase C18 partitioning, Darcy-Poiseuille backpressure, Van Deemter plate height kinetics, LSS gradient elution | **USP &lt;621&gt;** System Suitability ($N$, $R_s$, $T$) | `/instruments/hplc/` |
+| **🔬 UV-Vis** | Dual-beam Czerny-Turner monochromator, Beer-Lambert linear regression ($R^2 \ge 0.999$), Henderson-Hasselbalch ionization shifts, derivative spectroscopy ($dA/d\lambda$) | **USP &lt;857&gt;** Photometric Linearity & Stray Light | `/instruments/uvvis/` |
+| **🔴 FTIR** | Michelson interferometer moving mirror optical path difference $I(\delta)$, Cooley-Tukey Fast Fourier Transform (FFT) $\to \%T(\nu)$, ATR diamond crystal penetration depth $d_p(\lambda)$ | **ASTM E1421** Polystyrene Calibration | `/instruments/ftir/` |
+| **🟢 GC-FID** | Capillary column chromatography, Golay efficiency equation, carrier gas kinetics ($N_2$, $He$, $H_2$), thermal ramp programming, Flame Ionization Detection, Kovats retention index ($I$) | **USP &lt;467&gt;** Residual Solvents | `/instruments/gc/` |
+
+---
+
+## 🎯 Platform Highlights & Pedagogical Features
+
+1. **Pedagogical Predict-Observe-Explain (POE) Framework**:
    $$\text{Predict} \longrightarrow \text{Run} \longrightarrow \text{Observe} \longrightarrow \text{Compare} \longrightarrow \text{Understand Why} \longrightarrow \text{Try Again}$$
-2. **Hero Chromatogram Viewport**: Real-time signal acquisition ($52\text{vh}$ desktop hero canvas) with single-canvas GPU rendering.
-3. **Pre-Run Prediction Mode**: 1-click hypothesis selection before injection to test physical intuition.
-4. **Tiny Inline Observation Prompt**: Non-intrusive post-run observations directly beneath the chromatogram without modal popups.
-5. **Compare Runs Overlay & 4-Step Teacher Summary**: Dual-trace comparison (`Current` in Orange `#f97316`, `Previous` in Cyan `#38bdf8`) with an automated 4-step diagnostic breakdown (*Changed*, *Observed*, *Reason*, *Suggested Next*).
-6. **Contextual "Why?" Micro-Chips**: Debounced 2.0s inline chips attached to stepper controls for micro-explanations.
-7. **3-State Fluid Morphing PiP**: `IntersectionObserver` ratio-driven transitions (`>80%` Full Hero $\to$ `20%–80%` Compact Hero $\to$ `<20%` Floating PiP).
-8. **Mobile-First Touch Target Architecture**: Adheres to $\ge 44\text{px}$ touch targets and zero pointer collisions on mobile devices ($390 \times 844$).
+2. **20-Foot Classroom Projection Mode**: High-contrast, large-typography mode optimized for lecture hall visibility.
+3. **Interactive Resource Guides**: Comprehensive SOPs, troubleshooting matrices, and LMS iframe embed snippets built right into the platform modal.
+4. **Living Signal Demonstration Canvas**: Real-time multi-beam dispersion rendering at 60 FPS, throttled intelligently via `IntersectionObserver` when offscreen to preserve battery and main-thread responsiveness.
+5. **Modern Web Platform Standards**:
+   - Native `<dialog>` with focus trapping, focus restoration, and `overscroll-behavior: contain`.
+   - Accessible Canvas DOM (`role="img"`, ARIA labels, and `prefers-reduced-motion` static frame fallback).
+   - High color contrast (WCAG 2.2 AA compliant) and `text-wrap: pretty` typographic balancing.
 
 ---
 
-## 🚀 Quick Start & Running Locally
+## 🚀 Running Locally
 
 ### Prerequisites
 - Node.js (v18+) or Python 3
 
 ### Step 1: Start Server
 ```bash
-# Using Node http-server
-npx http-server ./ -p 8000
+# Using Node.js
+node server.mjs
+
+# OR using npx
+npx serve ./ -p 8080
 
 # OR using Python
-python -m http.server 8000
+python -m http.server 8080
 ```
 
 ### Step 2: Open in Browser
-Navigate to `http://localhost:8000/instruments/hplc/index.html`
+- **Home Landing Page:** `http://localhost:8080/index.html`
+- **HPLC Workstation:** `http://localhost:8080/instruments/hplc/index.html`
+- **UV-Vis Workstation:** `http://localhost:8080/instruments/uvvis/index.html`
+- **FTIR Workstation:** `http://localhost:8080/instruments/ftir/index.html`
+- **GC-FID Workstation:** `http://localhost:8080/instruments/gc/index.html`
 
 ---
 
-## 🧪 Running Automated Tests & Validation
+## 🧪 Testing & Verification
 
 ```bash
-# Run 11-Gate Automated CI Architectural & Scientific Check
+# Verify live production and workstation loading
+node scratch/live_check.mjs
+
+# HPLC CI Architecture Check
 node instruments/hplc/validation/ciArchitectureCheck.js
 
-# Run Educational Outcome Playwright Suite
+# Educational Outcome Playwright Suite
 node scratch/verify_educational_outcomes.js
-
-# Run Morphing PiP Visual Suite
-node scratch/verify_pip_visual_suite.js
 ```
 
 ---
 
-## 📁 Repository Documentation Structure
+## 📁 Repository Structure
 
-- **[README.md](file:///C:/Users/hs941/.gemini/antigravity/scratch/virtual-analytical-lab/README.md)**: Project overview, setup, and test runner instructions.
-- **[DESIGN.md](file:///C:/Users/hs941/.gemini/antigravity/scratch/virtual-analytical-lab/DESIGN.md)**: Semantic design system, typography, color tokens, and anti-patterns.
-- **[ARCHITECTURE.md](file:///C:/Users/hs941/.gemini/antigravity/scratch/virtual-analytical-lab/ARCHITECTURE.md)**: Instrument plugin architecture and engine/UI boundaries.
-- **[docs/validation/](file:///C:/Users/hs941/.gemini/antigravity/scratch/virtual-analytical-lab/docs/validation/)**: Supporting Playwright screenshots, regression reports, and scientific validation benchmarks.
+```text
+├── index.html                   # Platform Landing Page (Bento Showcase & Guides Modal)
+├── server.mjs                   # Local development server with CORS & MIME mappings
+├── vercel.json                  # Production Edge routing and header configurations
+├── manifest.webmanifest         # PWA Manifest specification
+├── sw.js                        # Progressive Web App offline Service Worker
+├── css/
+│   └── global.css               # Design tokens, double-bezel cards, and shared UI styles
+├── ui/
+│   └── components/
+│       └── LabHeader.js         # Shared custom element <lab-header> across all simulators
+├── instruments/
+│   ├── hplc/                    # High-Performance Liquid Chromatography simulator
+│   ├── uvvis/                   # UV-Vis Double-Beam Spectrophotometer simulator
+│   ├── ftir/                    # FTIR Michelson Interferometer simulator
+│   └── gc/                      # Gas Chromatograph Flame Ionization simulator
+└── docs/                        # Educator, Student, Deployment, and Validation guides
+```
+
+---
+
+## 📜 License & Citation
+
+Distributed under the **MIT License**. Created and maintained by [Himanshu Sharma](https://himshim.github.io/).

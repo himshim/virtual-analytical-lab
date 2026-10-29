@@ -75,7 +75,7 @@
       
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
-      --text-dim: #64748b;
+      --text-dim: #94a3b8;
       
       --radius-sm: 8px;
       --radius-md: 14px;
@@ -293,6 +293,7 @@
     }
 
     .hero-subtext {
+      text-wrap: pretty;
       font-size: clamp(1rem, 1.8vw, 1.16rem);
       color: var(--text-muted);
       line-height: 1.6;
@@ -651,6 +652,7 @@
     }
 
     .card-description {
+      text-wrap: pretty;
       font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.55;
@@ -778,6 +780,7 @@
       margin-bottom: 4px;
     }
     .teaser-desc {
+      text-wrap: pretty;
       font-size: 0.76rem;
       color: var(--text-dim);
       line-height: 1.45;
@@ -810,6 +813,7 @@
       margin: 0 0 6px;
     }
     .docs-text p {
+      text-wrap: pretty;
       font-size: 0.88rem;
       color: var(--text-muted);
       margin: 0;
@@ -1008,7 +1012,7 @@
 <body>
 
   <!-- Skip link for accessibility -->
-  <a class="skip-link" href="#workstations">Skip to content</a>
+  <a class="skip-link" href="#mainContent">Skip to content</a>
 
   <!-- Ambient background glow mesh -->
   <div class="ambient-radial-glow" aria-hidden="true">
@@ -1086,7 +1090,7 @@
           </div>
           <div>60 FPS MULTI-BEAM DISPERSION</div>
         </div>
-        <canvas id="heroWaveCanvas"></canvas>
+        <canvas id="heroWaveCanvas" role="img" aria-label="Real-time multi-beam physical signal synthesis demonstrating HPLC chromatographic elution peaks, UV-Vis double-beam optical dispersion, FTIR Michelson interferogram centerburst, and GC thermal flame ionization."></canvas>
         <div class="specimen-labels">
           <div class="specimen-pill"><span class="specimen-pill-dot" style="background:#38bdf8"></span> HPLC Gaussian Elution Peak</div>
           <div class="specimen-pill"><span class="specimen-pill-dot" style="background:#c084fc"></span> UV-Vis Double-Beam Dispersion</div>
@@ -1309,31 +1313,31 @@
   </footer>
 
   <!-- INTERACTIVE RESOURCE GUIDE MODAL POPUP -->
-  <div id="guideModal" class="guide-modal-backdrop" role="dialog" aria-modal="true" aria-label="Resource Guides">
+  <dialog id="guideModal" class="guide-modal" aria-labelledby="guideModalTitle">
     <div class="guide-modal-dialog">
       <!-- Modal Header -->
       <div class="guide-modal-header">
         <div>
-          <h2 style="margin:0; font-size:1.15rem; color:#f8fafc; font-family:var(--font-mono); font-weight:800;">
+          <h2 id="guideModalTitle" style="margin:0; font-size:1.15rem; color:#f8fafc; font-family:var(--font-mono); font-weight:800;">
             📖 Resource Guides &amp; Classroom Manuals
           </h2>
           <span style="font-size:0.75rem; color:#94a3b8;">Virtual Analytical Lab Documentation Suite</span>
         </div>
-        <button type="button" id="closeGuideModalBtn" onclick="window.closeGuideModal()" style="background:rgba(255,255,255,0.06); border:1px solid #334155; color:#f8fafc; width:32px; height:32px; border-radius:50%; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s ease;">✕</button>
+        <button type="button" id="closeGuideModalBtn" aria-label="Close resource guides dialog" onclick="window.closeGuideModal()" style="background:rgba(255,255,255,0.06); border:1px solid #334155; color:#f8fafc; width:32px; height:32px; border-radius:50%; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s ease;">✕</button>
       </div>
 
       <!-- Modal Tabs -->
-      <div class="guide-modal-tabs">
-        <button type="button" class="guide-tab-btn active" id="guideTabBtn-student" onclick="window.switchGuideTab('student')">🎓 Student Manual</button>
-        <button type="button" class="guide-tab-btn" id="guideTabBtn-instructor" onclick="window.switchGuideTab('instructor')">👨‍🏫 Instructor &amp; Faculty Guide</button>
-        <button type="button" class="guide-tab-btn" id="guideTabBtn-deployment" onclick="window.switchGuideTab('deployment')">🏫 Deployment &amp; LMS Integration</button>
+      <div class="guide-modal-tabs" role="tablist" aria-label="Documentation Categories">
+        <button type="button" class="guide-tab-btn active" id="guideTabBtn-student" role="tab" aria-selected="true" aria-controls="guideContent-student" onclick="window.switchGuideTab('student')">🎓 Student Manual</button>
+        <button type="button" class="guide-tab-btn" id="guideTabBtn-instructor" role="tab" aria-selected="false" aria-controls="guideContent-instructor" onclick="window.switchGuideTab('instructor')">👨‍🏫 Instructor &amp; Faculty Guide</button>
+        <button type="button" class="guide-tab-btn" id="guideTabBtn-deployment" role="tab" aria-selected="false" aria-controls="guideContent-deployment" onclick="window.switchGuideTab('deployment')">🏫 Deployment &amp; LMS Integration</button>
       </div>
 
       <!-- Modal Content Body -->
       <div class="guide-modal-body" id="guideModalBody">
 
         <!-- TAB 1: STUDENT MANUAL -->
-        <div id="guideContent-student" class="guide-content-panel">
+        <div id="guideContent-student" class="guide-content-panel" role="tabpanel" aria-labelledby="guideTabBtn-student">
           <h2>🎓 Student Practical &amp; Laboratory Manual</h2>
           <p>A complete step-by-step practical manual for mastering pharmaceutical and chemical instrumental analysis on <strong>Virtual Analytical Lab</strong>.</p>
           
@@ -1380,7 +1384,7 @@
         </div>
 
         <!-- TAB 2: INSTRUCTOR GUIDE -->
-        <div id="guideContent-instructor" class="guide-content-panel" style="display:none;">
+        <div id="guideContent-instructor" class="guide-content-panel" role="tabpanel" aria-labelledby="guideTabBtn-instructor" style="display:none;">
           <h2>👨‍🏫 Instructor &amp; Faculty Guide</h2>
           <p>Comprehensive pedagogical guidance for teaching undergraduate and postgraduate chemistry and pharmacy laboratory courses.</p>
 
@@ -1414,7 +1418,7 @@
         </div>
 
         <!-- TAB 3: DEPLOYMENT GUIDE -->
-        <div id="guideContent-deployment" class="guide-content-panel" style="display:none;">
+        <div id="guideContent-deployment" class="guide-content-panel" role="tabpanel" aria-labelledby="guideTabBtn-deployment" style="display:none;">
           <h2>🏫 Classroom &amp; Campus Deployment Guide</h2>
           <p>Technical guide for IT Administrators, Lab Instructors, and Academic Technologists deploying <strong>Virtual Analytical Lab</strong>.</p>
 
